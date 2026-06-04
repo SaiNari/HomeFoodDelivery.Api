@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Food Delivery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>    
+    <style>
+        body { background-color: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; }
+        .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: none; }
+        .badge-portions { font-size: 1.2rem; }
+    </style>
+</head>
+<body class="container py-4">
+
+    <div class="hero text-center">
+        <h1>👨‍🍳 Household's Kitchen</h1>
+        <p class="lead">Live Order Dashboard for Sai Nari</p>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-md-6 mb-4">
+            <h3 class="mb-3">Today's Menu</h3>
+            <div class="card p-4" id="menuCard">
+                <h2 id="dishName" class="text-primary">Loading Menu...</h2>
+                <p id="dishDesc" class="text-muted">Fetching from database...</p>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-success" id="dishPrice">₹0.00</h4>
+                    <span class="badge bg-warning text-dark badge-portions"><span id="portionsLeft">0</span> Portions Left</span>
+                </div>
+                
+                <div class="input-group mt-3">
+                    <span class="input-group-text">Quantity</span>
+                    <input type="number" id="orderQty" class="form-control" value="1" min="1" max="10">
+                    <button class="btn btn-danger" onclick="placeOrder()">Place Order 🚀</button>
+                </div>
+                <div id="errorMessage" class="text-danger mt-2 fw-bold"></div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h3 class="mb-3">Live Kitchen Orders</h3>
+            <div class="card p-4">
+                <ul class="list-group" id="orderList">
+                    </ul>
+            </div>
+        </div>
+
+    </div>
+
+    
+    <script>
+        // CRITICAL: Ensure this port matches your Visual Studio console URL!
+        const API_BASE_URL = '/api';
+        
+        let currentMenuId = 1;
+        let currentPrice = 0;
+
+        // 1. Fetch the Menu from the Database
+        async function loadMenu() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/DailyMenus`);
+                const menus = await response.json();
+                
+                if(menus.length > 0) {
+                    const activeMenu = menus[0]; // Get the Biryani
+                    currentMenuId = activeMenu.menuId;
+                    currentPrice = activeMenu.pricePerPortion;
+                    
+                    document.getElementById('dishName').innerText = activeMenu.dishName;
+                    document.getElementById('dishDesc').innerText = activeMenu.description;
+                    document.getElementById('dishPrice').innerText = `₹${activeMenu.pricePerPortion}`;
+                    document.getElementById('portionsLeft').innerText = activeMenu.availablePortions;
+                }
+            } catch (error) {
+                document.getElementById('dishDesc').innerText = "Error connecting to .NET API. Is Visual Studio running?";
+            }
+        }
+
+        // 2. Fetch all Orders from the Database
+        async function loadOrders() {
+            const response = await fetch(`${API_BASE_URL}/Orders`);
+            const orders = await response.json();
+            
+            const list = document.getElementById('orderList');
+            list.innerHTML = ''; // Clear old list
+            
+            // Loop through database orders and create HTML for each one
+            orders.reverse().forEach(order => {
+                list.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Order #${order.orderId} (Customer ${order.customerId})
+                        <span class="badge bg-primary rounded-pill">${order.quantity} Portions</span>
+                    </li>
+                `;
+            });
+        }
+
+        // 3. Send a new Order to the Backend
+        async function placeOrder() {
+            document.getElementById('errorMessage').innerText = ''; // Clear old errors
+            const qty = parseInt(document.getElementById('orderQty').value);
+            
+            const newOrder = {
+                customerId: 2, // Sai Nari
+                menuId: currentMenuId,
+                quantity: qty,
+                totalPrice: qty * currentPrice,
+                orderStatus: "Pending",
+                idempotencyKey: crypto.randomUUID(), // Generate unique ID so no double charging
+                orderTime: new Date().toISOString()
+            };
+
+            const response = await fetch(`${API_BASE_URL}/Orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrder)
+            });
+
+            if (response.ok) {
+                // If success, refresh the dashboard!
+                loadMenu();
+                loadOrders();
+            } else {
+                // If our OrderService blocked it (e.g., Sold Out), show the error!
+                const errorData = await response.json();
+                document.getElementById('errorMessage').innerText = `❌ ${errorData.message}`;
+            }
+        }
+
+        // When the page loads, fetch the data!
+        loadMenu();
+        loadOrders();
+        // --- REAL-TIME SIGNALR CONNECTION ---
+        // Change the 44329 to match your API_BASE_URL port!
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/kitchenHub")
+            .withAutomaticReconnect()
+            .build();
+
+        // When the server shouts "OrderReceived", do this:
+        connection.on("OrderReceived", function () {
+            console.log("⚡ Real-time order detected!");
+            
+            // Add a cool flash effect to the page
+            document.body.style.transition = "background-color 0.3s";
+            document.body.style.backgroundColor = "#e8f5e9"; // Light green flash
+            setTimeout(() => document.body.style.backgroundColor = "#f8f9fa", 300);
+
+            // Fetch the fresh data!
+            loadMenu();
+            loadOrders();
+        });
+
+        // Start the connection
+        connection.start()
+            .then(() => console.log("🟢 Connected to Gordon Ramsay's Kitchen Hub"))
+            .catch(err => console.error("🔴 SignalR Connection Error: ", err));
+    </script>
+</body>
+</html>

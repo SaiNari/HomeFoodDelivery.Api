@@ -1,6 +1,5 @@
-@HomeFoodDelivery.Api_HostAddress = http://localhost:5287
+@HostAddress = https://localhost:44329
 
-GET {{HomeFoodDelivery.Api_HostAddress}}/weatherforecast/
+### Get all Meal Shifts from the Database
+GET {{HostAddress}}/api/MealShifts
 Accept: application/json
-
-###
