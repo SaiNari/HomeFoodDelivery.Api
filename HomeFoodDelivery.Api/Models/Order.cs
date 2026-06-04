@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization; // <-- Added for JSON control
 
 namespace HomeFoodDelivery.Api.Models;
 
@@ -10,11 +11,15 @@ public class Order
 
     [Required]
     public int CustomerId { get; set; }
+
+    [JsonIgnore] // <-- Hide User object from Swagger
     [ForeignKey(nameof(CustomerId))]
     public User? Customer { get; set; }
 
     [Required]
     public int MenuId { get; set; }
+
+    [JsonIgnore] // <-- Hide Menu object from Swagger
     [ForeignKey(nameof(MenuId))]
     public DailyMenu? DailyMenu { get; set; }
 

@@ -3,6 +3,7 @@ using System;
 using HomeFoodDelivery.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFoodDelivery.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260604120812_SeedMealShifts")]
+    partial class SeedMealShifts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -56,60 +59,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.HasIndex("ShiftId");
 
                     b.ToTable("DailyMenus");
-                });
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.DeliveryZone", b =>
-                {
-                    b.Property<int>("ZoneId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ServicingNeighborhoods")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TechParkName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ZoneId");
-
-                    b.ToTable("DeliveryZones");
-
-                    b.HasData(
-                        new
-                        {
-                            ZoneId = 1,
-                            IsActive = true,
-                            ServicingNeighborhoods = "CV Raman Nagar, Mahadevapura, Indiranagar",
-                            TechParkName = "Bagmane Tech Park"
-                        },
-                        new
-                        {
-                            ZoneId = 2,
-                            IsActive = true,
-                            ServicingNeighborhoods = "Hebbal, Nagawara, Thanisandra",
-                            TechParkName = "Manyata Tech Park"
-                        },
-                        new
-                        {
-                            ZoneId = 3,
-                            IsActive = true,
-                            ServicingNeighborhoods = "Bellandur, Marathahalli, Sarjapur Road",
-                            TechParkName = "RMZ Ecospace"
-                        },
-                        new
-                        {
-                            ZoneId = 4,
-                            IsActive = true,
-                            ServicingNeighborhoods = "Electronic City, Bommanahalli",
-                            TechParkName = "Electronic City Phase 1"
-                        });
                 });
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.MealShift", b =>
@@ -231,15 +180,10 @@ namespace HomeFoodDelivery.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("ZoneId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("UserId");
 
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
-
-                    b.HasIndex("ZoneId");
 
                     b.ToTable("Users");
                 });
@@ -280,15 +224,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("DailyMenu");
-                });
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.User", b =>
-                {
-                    b.HasOne("HomeFoodDelivery.Api.Models.DeliveryZone", "DeliveryZone")
-                        .WithMany()
-                        .HasForeignKey("ZoneId");
-
-                    b.Navigation("DeliveryZone");
                 });
 #pragma warning restore 612, 618
         }
