@@ -2,7 +2,6 @@
 
 namespace HomeFoodDelivery.Api.DTOs;
 
-// What the mobile app sends when a user signs up
 public class RegisterRequest
 {
     [Required]
@@ -17,12 +16,16 @@ public class RegisterRequest
     public string AddressText { get; set; } = string.Empty;
 
     [Required]
-    public int ZoneId { get; set; } // The Tech Park they selected
+    public int ZoneId { get; set; } // Auto-mapped via Pincode or manual choice
+
+    [MaxLength(6)]
+    public string? Pincode { get; set; }
+
+    public string? GoogleId { get; set; } // Optional social key
 }
 
-// What the mobile app sends when a user logs in
 public class LoginRequest
 {
-    [Required]
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+    public string? GoogleId { get; set; } // Can log in directly via Google ID
 }

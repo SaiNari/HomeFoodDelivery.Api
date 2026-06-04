@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-
 namespace HomeFoodDelivery.Api.Models;
 
 public class User
@@ -15,22 +14,27 @@ public class User
     public string FullName { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(15)]
+    [MaxLength(20)]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required]
     [MaxLength(20)]
-    public string UserRole { get; set; } = string.Empty;
+    public string UserRole { get; set; } = string.Empty; // "Customer" or "Cook"
 
-    public int? ZoneId { get; set; } // Nullable because they set it during registration
+    public int? ZoneId { get; set; }
 
     [JsonIgnore]
     [ForeignKey(nameof(ZoneId))]
     public DeliveryZone? DeliveryZone { get; set; }
-    // ---------------------------
 
     public string? AddressText { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // --- NEW FIELD: For neighborhood mapping ---
+    [MaxLength(6)]
+    public string? Pincode { get; set; }
 
+    // --- NEW FIELD: For social authentication ---
+    public string? GoogleId { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

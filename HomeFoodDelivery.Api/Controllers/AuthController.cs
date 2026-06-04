@@ -20,11 +20,14 @@ namespace HomeFoodDelivery.Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            // 1. Check if the user already exists
+            // 1. Check if user already exists via Phone or Google ID
             if (await _context.Users.AnyAsync(u => u.PhoneNumber == request.PhoneNumber))
-                return BadRequest(new { message = "Phone number is already registered. Please log in." });
+                return BadRequest(new { message = "Phone number is already registered." });
 
-            // 2. Create the new user and attach them to a Tech Park Zone
+            if (!string.IsNullOrEmpty(request.GoogleId) && await _context.Users.AnyAsync(u => u.GoogleId == request.GoogleId))
+                return BadRequest(new { message = "This Google account is already linked to a profile." });
+
+            // 2. Build the user account with our hyper-local area markers
             var newUser = new User
             {
                 FullName = request.FullName,
@@ -32,6 +35,8 @@ namespace HomeFoodDelivery.Api.Controllers
                 UserRole = request.UserRole,
                 AddressText = request.AddressText,
                 ZoneId = request.ZoneId,
+                Pincode = request.Pincode,
+                GoogleId = request.GoogleId,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -44,23 +49,33 @@ namespace HomeFoodDelivery.Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            // 1. Find the user and include their Tech Park details
-            var user = await _context.Users
-                .Include(u => u.DeliveryZone)
-                .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+            User? user = null;
 
-            // 2. Reject if they don't exist
+            // 1. Smart Lookup: Check if logging in via Google or Phone number
+            if (!string.IsNullOrEmpty(request.GoogleId))
+            {
+                user = await _context.Users
+                    .Include(u => u.DeliveryZone)
+                    .FirstOrDefaultAsync(u => u.GoogleId == request.GoogleId);
+            }
+            else if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                user = await _context.Users
+                    .Include(u => u.DeliveryZone)
+                    .FirstOrDefaultAsync(u => u.PhoneNumber == request.PhoneNumber);
+            }
+
             if (user == null)
-                return Unauthorized(new { message = "User not found. Please register an account." });
+                return Unauthorized(new { message = "Account not found. Proceed to registration." });
 
-            // 3. Return the critical routing data to the mobile app!
+            // 2. Return role-routing data to guide the UI
             return Ok(new
             {
                 message = "Login successful",
                 userId = user.UserId,
                 fullName = user.FullName,
-                role = user.UserRole,       // Mobile app uses this to redirect to Cook vs Customer dashboard
-                zoneId = user.ZoneId,       // Mobile app uses this to filter the food
+                role = user.UserRole,       // "Customer" or "Cook"
+                zoneId = user.ZoneId,
                 zoneName = user.DeliveryZone?.TechParkName
             });
         }
