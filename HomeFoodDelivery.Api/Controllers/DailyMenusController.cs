@@ -16,22 +16,38 @@ namespace HomeFoodDelivery.Api.Controllers
             _context = context;
         }
 
-        // GET: api/DailyMenus
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DailyMenu>>> GetDailyMenus()
         {
             return await _context.DailyMenus.ToListAsync();
         }
 
-        // POST: api/DailyMenus
+        // Consolidated POST method - Single entry point
         [HttpPost]
-        public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu dailyMenu)
+        public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu menu)
         {
-            _context.DailyMenus.Add(dailyMenu);
-            await _context.SaveChangesAsync();
+            try
+            {
+                // Set creation dates if not set
+                menu.CreatedAt = DateTime.UtcNow;
+                if (menu.MenuDate == default) menu.MenuDate = DateTime.UtcNow;
 
-            // Return the newly created menu
-            return CreatedAtAction(nameof(GetDailyMenus), new { id = dailyMenu.MenuId }, dailyMenu);
+                // Validate that Required fields are present
+                if (menu.CookId == 0 || menu.ShiftId == 0)
+                {
+                    return BadRequest("CookId and ShiftId are required.");
+                }
+
+                _context.DailyMenus.Add(menu);
+                await _context.SaveChangesAsync();
+
+                return Ok(menu);
+            }
+            catch (Exception ex)
+            {
+                // Returns the actual error message if something goes wrong
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }

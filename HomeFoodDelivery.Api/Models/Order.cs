@@ -19,7 +19,7 @@ public class Order
     [Required]
     public int MenuId { get; set; }
 
-    [JsonIgnore] // <-- Hide Menu object from Swagger
+    
     [ForeignKey(nameof(MenuId))]
     public DailyMenu? DailyMenu { get; set; }
 

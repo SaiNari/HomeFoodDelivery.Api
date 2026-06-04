@@ -44,5 +44,40 @@ namespace HomeFoodDelivery.Api.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // GET: api/Orders/cook/{cookId}
+        [HttpGet("cook/{cookId}")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersForCook(int cookId)
+        {
+            // Fetch orders that match the cook's ID by joining through the DailyMenu
+            return await _context.Orders
+                .Include(o => o.DailyMenu)
+                .Where(o => o.DailyMenu != null && o.DailyMenu.CookId == cookId)
+                .OrderByDescending(o => o.OrderTime)
+                .ToListAsync();
+        }
+
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] string status)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            order.OrderStatus = status;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Status updated successfully" });
+        }
+
+        // GET: api/Orders/customer/{customerId}
+        [HttpGet("customer/{customerId}")]
+        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersForCustomer(int customerId)
+        {
+            return await _context.Orders
+                .Include(o => o.DailyMenu)
+                .Where(o => o.CustomerId == customerId)
+                .OrderByDescending(o => o.OrderTime)
+                .ToListAsync();
+        }
     }
 }

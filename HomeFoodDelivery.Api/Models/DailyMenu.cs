@@ -32,6 +32,8 @@ public class DailyMenu
 
     public string? Description { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     [Required]
     public int AvailablePortions { get; set; }
 

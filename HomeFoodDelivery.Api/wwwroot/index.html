@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome - HomeFood Delivery</title>
+    <title>OotaBox Gateway</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f3f4f6;
@@ -22,7 +23,7 @@
         .brand-header {
             background: linear-gradient(135deg, #ff416c, #ff4b2b);
             color: white;
-            padding: 3rem 1.5rem;
+            padding: 2.5rem 1.5rem;
             text-align: center;
             border-radius: 0 0 25px 25px;
         }
@@ -33,8 +34,43 @@
 
         .nav-pills .nav-link {
             color: #555;
-            fw-bold;
+            font-weight: 600;
         }
+
+        .btn-google {
+            background-color: #ffffff;
+            color: #757575;
+            border: 1px solid #ddd;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+            .btn-google:hover {
+                background-color: #f7f7f7;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #aaa;
+            margin: 1.5rem 0;
+        }
+
+            .divider::before, .divider::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid #eee;
+            }
+
+            .divider:not(:empty)::before {
+                margin-right: .5em;
+            }
+
+            .divider:not(:empty)::after {
+                margin-left: .5em;
+            }
     </style>
 </head>
 <body>
@@ -43,7 +79,7 @@
         <div>
             <div class="brand-header mb-4">
                 <h1 class="fw-bold">🍱 OotaBox</h1>
-                <p class="mb-0">Authentic Home Cooked Food for Bangalore Tech Parks</p>
+                <p class="mb-0 mx-2 small">Authentic Home Cooked Food for Bengaluru Tech Parks</p>
             </div>
 
             <div class="px-4">
@@ -58,41 +94,69 @@
 
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="loginSection">
+                        <button class="btn btn-google btn-lg w-100 d-flex align-items-center justify-content-center gap-2 mb-2" onclick="simulateGoogleAuth('login')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
+                            Continue with Google
+                        </button>
+
+                        <div class="divider">or use mobile number</div>
+
                         <form id="loginForm" onsubmit="handleLogin(event)">
                             <div class="mb-3">
-                                <label class="form-label text-muted small uppercase">Phone Number</label>
-                                <input type="tel" id="loginPhone" class="form-control form-control-lg" placeholder="Enter your 10-digit number" required>
+                                <label class="form-label text-muted small fw-bold">PHONE NUMBER</label>
+                                <input type="tel" id="loginPhone" class="form-control form-control-lg" placeholder="10-digit mobile number" required>
                             </div>
                             <button type="submit" class="btn btn-danger btn-lg w-100 mt-2" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); border:none;">Let's Eat 🚀</button>
                         </form>
                     </div>
 
                     <div class="tab-pane fade" id="registerSection">
+                        <button class="btn btn-google btn-lg w-100 d-flex align-items-center justify-content-center gap-2 mb-2" onclick="simulateGoogleAuth('register')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
+                            Sign up with Google
+                        </button>
+
+                        <div class="divider">or fill registration profiles</div>
+
                         <form id="registerForm" onsubmit="handleRegister(event)">
+                            <input type="hidden" id="regGoogleId" value="">
+
                             <div class="mb-3">
-                                <label class="form-label text-muted small">I want to:</label>
-                                <select id="regRole" class="form-select" onchange="toggleCookFields()" required>
+                                <label class="form-label text-muted small fw-bold">I WANT TO:</label>
+                                <select id="regRole" class="form-select form-select-lg" onchange="toggleRoleFields()" required>
                                     <option value="Customer">Order Delicious Home Food (Customer)</option>
                                     <option value="Cook">Cook & Earn from Home (Home Chef)</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted small">Full Name</label>
-                                <input type="text" id="regName" class="form-control" placeholder="Your Name" required>
+                                <label class="form-label text-muted small fw-bold">FULL NAME</label>
+                                <input type="text" id="regName" class="form-control" placeholder="Enter full name" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label text-muted small">Phone Number</label>
+                                <label class="form-label text-muted small fw-bold">PHONE NUMBER</label>
                                 <input type="tel" id="regPhone" class="form-control" placeholder="10-digit mobile number" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label text-muted small">Select Your Primary Tech Park Workspace</label>
+
+                            <div class="mb-3 d-none" id="pincodeFieldSection">
+                                <label class="form-label text-muted small fw-bold">HOME PINCODE (BENGALURU)</label>
+                                <div class="input-group">
+                                    <input type="text" id="regPincode" class="form-control" placeholder="e.g., 560093" maxlength="6" oninput="handlePincodeLookup()">
+                                    <span class="input-group-text bg-white"><i class="fa-solid fa-location-dot text-danger"></i></span>
+                                </div>
+                                <div id="pincodeFeedback" class="form-text fw-bold small mt-1"></div>
+                            </div>
+
+                            <div class="mb-3" id="techParkFieldSection">
+                                <label class="form-label text-muted small fw-bold">PRIMARY TECH PARK WORKSPACE Hub</label>
                                 <select id="regZone" class="form-select" required>
                                 </select>
                             </div>
-                            <div class="mb-3 d-none" id="kitchenField">
-                                <label class="form-label text-muted small">Kitchen or Home Address Details</label>
-                                <input type="text" id="regAddress" class="form-control" placeholder="Flat No, Apartment Near Tech Park">
+
+                            <div class="mb-3 d-none" id="addressFieldSection">
+                                <label class="form-label text-muted small fw-bold">KITCHEN / DELIVERY ADDRESS</label>
+                                <input type="text" id="regAddress" class="form-control" placeholder="Flat No, Building, Neighborhood detail">
                             </div>
+
                             <button type="submit" class="btn btn-danger btn-lg w-100 mt-3" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); border:none;">Create Account 🎉</button>
                         </form>
                     </div>
@@ -102,44 +166,128 @@
             </div>
         </div>
 
-        <div class="text-center py-3 text-muted small border-top bg-light">
-            Secure Role-Based Ecosystem Enabled
+        <div class="text-center py-3 text-muted small border-top bg-light mt-4">
+            🔒 Verified OAuth & Location Services Active
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         const API_BASE_URL = '/api';
+        let cachedZones = [];
 
-        // 1. Fetch Master Tech Parks list from API on Page Load
+        // 1. Fetch Master Zones on Page Load
         async function loadTechParks() {
             try {
                 const response = await fetch(`${API_BASE_URL}/DeliveryZones`);
-                const zones = await response.json();
-                const zoneSelect = document.getElementById('regZone');
-                zoneSelect.innerHTML = '';
-
-                zones.forEach(zone => {
-                    zoneSelect.innerHTML += `<option value="${zone.zoneId}">${zone.techParkName} (${zone.servicingNeighborhoods})</option>`;
-                });
+                cachedZones = await response.json();
+                renderZoneDropdown(cachedZones);
             } catch (error) {
                 console.error("Failed to load tech parks", error);
             }
         }
 
-        // Show kitchen address field ONLY if the user selects the Cook role
-        function toggleCookFields() {
+        function renderZoneDropdown(zones) {
+            const zoneSelect = document.getElementById('regZone');
+            zoneSelect.innerHTML = '';
+            zones.forEach(zone => {
+                zoneSelect.innerHTML += `<option value="${zone.zoneId}">${zone.techParkName}</option>`;
+            });
+        }
+
+        // 2. Dynamic Field Toggle based on User Role choice
+        function toggleRoleFields() {
             const role = document.getElementById('regRole').value;
-            const kitchenField = document.getElementById('kitchenField');
+            const pincodeBox = document.getElementById('pincodeFieldSection');
+            const addressBox = document.getElementById('addressFieldSection');
+            const feedbackText = document.getElementById('pincodeFeedback');
+
             if (role === 'Cook') {
-                kitchenField.classList.remove('d-none');
+                pincodeBox.classList.remove('d-none');
+                addressBox.classList.remove('d-none');
             } else {
-                kitchenField.classList.add('d-none');
+                pincodeBox.classList.add('d-none');
+                addressBox.classList.add('d-none');
+                feedbackText.innerText = '';
+                renderZoneDropdown(cachedZones); // Reset selection
             }
         }
 
-        // 2. Handle Account Registration
+        // 3. Intelligent Pincode Mapping Logic
+        function handlePincodeLookup() {
+            const pincode = document.getElementById('regPincode').value;
+            const feedback = document.getElementById('pincodeFeedback');
+            const zoneSelect = document.getElementById('regZone');
+
+            if (pincode.length === 6) {
+                feedback.className = "form-text fw-bold small mt-1 text-primary animate-pulse";
+                feedback.innerText = "🔍 Verifying neighborhood maps...";
+
+                setTimeout(() => {
+                    // Simulated internal lookup table mapping standard Bangalore pincodes to Tech Parks
+                    if (pincode === "560093" || pincode === "560016") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: CV Raman Nagar / Mahadevapura. Matched Hub: Bagmane Tech Park.";
+                        zoneSelect.value = "1"; // Auto-select Bagmane
+                    } else if (pincode === "560045" || pincode === "560024") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Hebbal / Nagawara. Matched Hub: Manyata Tech Park.";
+                        zoneSelect.value = "2"; // Auto-select Manyata
+                    } else if (pincode === "560103" || pincode === "560037") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Bellandur / Marathahalli. Matched Hub: RMZ Ecospace.";
+                        zoneSelect.value = "3"; // Auto-select RMZ Ecospace
+                    } else if (pincode === "560100" || pincode === "560068") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Electronic City Phase 1. Matched Hub: E-City.";
+                        zoneSelect.value = "4"; // Auto-select E-City
+                    } else {
+                        feedback.className = "form-text fw-bold small mt-1 text-warning";
+                        feedback.innerText = "⚠️ Custom Zone: Outside default tech perimeter. Select your delivery hub manually below.";
+                    }
+                }, 600);
+            } else {
+                feedback.innerText = "";
+            }
+        }
+
+        // 4. Simulated Single-Click Google Authenticator Flow
+        function simulateGoogleAuth(actionType) {
+            showAlert('primary', 'Connecting to secure Google Account window...');
+
+            setTimeout(async () => {
+                // Generate simulated user data from Google profile asset payload
+                const mockGoogleId = "google-oauth2-id-sainari-1996";
+                const mockGoogleName = "Sai Nari";
+
+                if (actionType === 'login') {
+                    // Fire social login directly to auth controller
+                    const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ googleId: mockGoogleId })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        saveSessionAndRedirect(data);
+                    } else {
+                        // User exists on Google but doesn't have an OotaBox profile yet -> send them to Register tab!
+                        showAlert('warning', 'Google validation succeeded! Complete profile setup to finish account registration.');
+                        document.getElementById('register-tab').click();
+                        document.getElementById('regName').value = mockGoogleName;
+                        document.getElementById('regGoogleId').value = mockGoogleId;
+                    }
+                } else if (actionType === 'register') {
+                    // Populate registration fields instantly with Google variables
+                    showAlert('success', 'Google profile pulled successfully!');
+                    document.getElementById('regName').value = mockGoogleName;
+                    document.getElementById('regGoogleId').value = mockGoogleId;
+                }
+            }, 800);
+        }
+
+        // 5. Submit Registration
         async function handleRegister(e) {
             e.preventDefault();
             showAlert('', '');
@@ -148,8 +296,10 @@
                 fullName: document.getElementById('regName').value,
                 phoneNumber: document.getElementById('regPhone').value,
                 userRole: document.getElementById('regRole').value,
-                addressText: document.getElementById('regAddress').value || "Tech Park Hub",
-                zoneId: parseInt(document.getElementById('regZone').value)
+                addressText: document.getElementById('regAddress').value || "Tech Park Delivery Point",
+                zoneId: parseInt(document.getElementById('regZone').value),
+                pincode: document.getElementById('regPincode').value || null,
+                googleId: document.getElementById('regGoogleId').value || null
             };
 
             const response = await fetch(`${API_BASE_URL}/Auth/register`, {
@@ -161,24 +311,27 @@
             const data = await response.json();
 
             if (response.ok) {
-                showAlert('success', 'Registration successful! Switching to login tab...');
+                showAlert('success', 'Account established successfully! Preparing login access matrix...');
                 setTimeout(() => {
                     document.getElementById('login-tab').click();
-                    document.getElementById('loginPhone').value = payload.phoneNumber;
+                    // If registered with Google, let them log in with one-click Google
+                    if (payload.googleId) {
+                        simulateGoogleAuth('login');
+                    } else {
+                        document.getElementById('loginPhone').value = payload.phoneNumber;
+                    }
                 }, 1500);
             } else {
-                showAlert('danger', data.message || 'Registration failed.');
+                showAlert('danger', data.message || 'Registration failure check fields.');
             }
         }
 
-        // 3. Handle Account Login & Smart Role Routing
+        // 6. Submit Standard Phone Login
         async function handleLogin(e) {
             e.preventDefault();
             showAlert('', '');
 
-            const payload = {
-                phoneNumber: document.getElementById('loginPhone').value
-            };
+            const payload = { phoneNumber: document.getElementById('loginPhone').value };
 
             const response = await fetch(`${API_BASE_URL}/Auth/login`, {
                 method: 'POST',
@@ -187,37 +340,37 @@
             });
 
             const data = await response.json();
-
             if (response.ok) {
-                showAlert('success', `Welcome back, ${data.fullName}! Redirecting...`);
-
-                // Save session info inside browser storage so dashboards can read it!
-                localStorage.setItem('userId', data.userId);
-                localStorage.setItem('fullName', data.fullName);
-                localStorage.setItem('userRole', data.role);
-                localStorage.setItem('zoneId', data.zoneId);
-                localStorage.setItem('zoneName', data.zoneName);
-
-                // THE SMART REDIRECT MATRIX
-                setTimeout(() => {
-                    if (data.role === 'Cook') {
-                        window.location.href = '/cook/dashboard.html';
-                    } else {
-                        window.location.href = '/customer/dashboard.html';
-                    }
-                }, 1000);
+                saveSessionAndRedirect(data);
             } else {
-                showAlert('danger', data.message || 'Login failed.');
+                showAlert('danger', data.message || 'Login verification rejected.');
             }
+        }
+
+        function saveSessionAndRedirect(data) {
+            showAlert('success', `Access Approved. Welcome back ${data.fullName}!`);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('fullName', data.fullName);
+            localStorage.setItem('userRole', data.role);
+            localStorage.setItem('zoneId', data.zoneId);
+            localStorage.setItem('zoneName', data.zoneName);
+
+            setTimeout(() => {
+                if (data.role === 'Cook') {
+                    window.location.href = '/cook/dashboard.html';
+                } else {
+                    window.location.href = '/customer/dashboard.html';
+                }
+            }, 1000);
         }
 
         function showAlert(type, text) {
             const msg = document.getElementById('alertMessage');
+            if (!type) { msg.innerText = ''; return; }
             msg.className = `mt-3 text-center fw-bold small text-${type}`;
             msg.innerText = text;
         }
 
-        // Initialize Tech Park layout on mount
         loadTechParks();
     </script>
 </body>

@@ -6,7 +6,7 @@ using HomeFoodDelivery.Api.Hubs; // <-- Add this
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite("Data Source=HomeFoodDelivery.db"));
 
 // CORS
 builder.Services.AddCors(options =>
