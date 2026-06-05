@@ -3,6 +3,7 @@ using System;
 using HomeFoodDelivery.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFoodDelivery.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260605154036_AddWalletEntities")]
+    partial class AddWalletEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -65,106 +68,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.HasIndex("ShiftId");
 
                     b.ToTable("DailyMenus");
-
-                    b.HasData(
-                        new
-                        {
-                            MenuId = 101,
-                            AvailablePortions = 30,
-                            CookId = 1,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Spicy and crispy dosa with authentic Nellore karam.",
-                            DishName = "Nellore Karam Dosa",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 70.00m,
-                            ShiftId = 1
-                        },
-                        new
-                        {
-                            MenuId = 102,
-                            AvailablePortions = 25,
-                            CookId = 3,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Soft steaming idlis served with a cup of fresh ginger tea.",
-                            DishName = "Idli & Ginger Tea",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 50.00m,
-                            ShiftId = 1
-                        },
-                        new
-                        {
-                            MenuId = 103,
-                            AvailablePortions = 20,
-                            CookId = 1,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Classic local nati style donne chicken biryani.",
-                            DishName = "Nati Style Donne Chicken Biryani",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 180.00m,
-                            ShiftId = 2
-                        },
-                        new
-                        {
-                            MenuId = 104,
-                            AvailablePortions = 15,
-                            CookId = 3,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Slow-cooked authentic dum biryani with rich spices.",
-                            DishName = "Hyderabadi Chicken Dum Biryani",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 240.00m,
-                            ShiftId = 2
-                        },
-                        new
-                        {
-                            MenuId = 105,
-                            AvailablePortions = 10,
-                            CookId = 1,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Rich, flavorful, and tender mutton biryani.",
-                            DishName = "Nellore Mutton Biryani",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 320.00m,
-                            ShiftId = 3
-                        },
-                        new
-                        {
-                            MenuId = 106,
-                            AvailablePortions = 12,
-                            CookId = 3,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Premium rich halwa loaded with roasted dry fruits.",
-                            DishName = "Shahi Dry Fruit Halwa",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 120.00m,
-                            ShiftId = 3
-                        },
-                        new
-                        {
-                            MenuId = 107,
-                            AvailablePortions = 15,
-                            CookId = 1,
-                            CreatedAt = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Creamy dessert overloaded with real fruits and nuts.",
-                            DishName = "Fruit N Nut Fantasy Ice Cream",
-                            IsVegetarian = true,
-                            MenuDate = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PreparationTimeMinutes = 30,
-                            PricePerPortion = 90.00m,
-                            ShiftId = 3
-                        });
                 });
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.DeliveryZone", b =>

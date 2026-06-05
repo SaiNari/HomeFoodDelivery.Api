@@ -22,6 +22,8 @@ public class RegisterRequest
     public string? Pincode { get; set; }
 
     public string? GoogleId { get; set; }
+
+    public string? ReferralCode { get; set; }
 }
 
 public class LoginRequest

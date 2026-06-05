@@ -19,6 +19,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddSignalR(); 
 
 builder.Services.AddEndpointsApiExplorer();

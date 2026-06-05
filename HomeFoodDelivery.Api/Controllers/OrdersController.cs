@@ -13,11 +13,13 @@ namespace HomeFoodDelivery.Api.Controllers
     {
         private readonly DataContext _context;
         private readonly IOrderService _orderService;
+        private readonly IWalletService _walletService;
 
-        public OrdersController(DataContext context, IOrderService orderService)
+        public OrdersController(DataContext context, IOrderService orderService, IWalletService walletService)
         {
             _context = context;
             _orderService = orderService;
+            _walletService = walletService;
         }
 
         // GET: api/Orders
@@ -91,16 +93,24 @@ namespace HomeFoodDelivery.Api.Controllers
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
+            if (request.PaymentMethod == "Wallet")
+            {
+                bool paymentSuccess = await _walletService.DebitBalanceAsync(request.CustomerId, request.TotalAmount);
+
+                if (!paymentSuccess)
+                    return BadRequest(new { message = "Insufficient wallet balance." });
+            }
             try
             {
-                if (request.Items == null || !request.Items.Any())
-                    return BadRequest(new { message = "Cart is empty." });
-
                 var completedOrders = await _orderService.ProcessCheckoutBatchAsync(request);
                 return Ok(new { message = "Order successful!", orders = completedOrders });
             }
             catch (Exception ex)
             {
+                if (request.PaymentMethod == "Wallet")
+                {
+                    await _walletService.CreditBalanceAsync(request.CustomerId, request.TotalAmount, "Refund due to order failure");
+                }
                 return BadRequest(new { message = ex.Message });
             }
         }
