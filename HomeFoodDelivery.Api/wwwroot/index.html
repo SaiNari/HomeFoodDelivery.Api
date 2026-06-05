@@ -209,7 +209,7 @@
                 pincodeBox.classList.add('d-none');
                 addressBox.classList.add('d-none');
                 feedbackText.innerText = '';
-                renderZoneDropdown(cachedZones); // Reset selection
+                renderZoneDropdown(cachedZones); 
             }
         }
 
@@ -228,19 +228,19 @@
                     if (pincode === "560093" || pincode === "560016") {
                         feedback.className = "form-text fw-bold small mt-1 text-success";
                         feedback.innerText = "📍 Location: CV Raman Nagar / Mahadevapura. Matched Hub: Bagmane Tech Park.";
-                        zoneSelect.value = "1"; // Auto-select Bagmane
+                        zoneSelect.value = "1"; 
                     } else if (pincode === "560045" || pincode === "560024") {
                         feedback.className = "form-text fw-bold small mt-1 text-success";
                         feedback.innerText = "📍 Location: Hebbal / Nagawara. Matched Hub: Manyata Tech Park.";
-                        zoneSelect.value = "2"; // Auto-select Manyata
+                        zoneSelect.value = "2"; 
                     } else if (pincode === "560103" || pincode === "560037") {
                         feedback.className = "form-text fw-bold small mt-1 text-success";
                         feedback.innerText = "📍 Location: Bellandur / Marathahalli. Matched Hub: RMZ Ecospace.";
-                        zoneSelect.value = "3"; // Auto-select RMZ Ecospace
+                        zoneSelect.value = "3"; 
                     } else if (pincode === "560100" || pincode === "560068") {
                         feedback.className = "form-text fw-bold small mt-1 text-success";
                         feedback.innerText = "📍 Location: Electronic City Phase 1. Matched Hub: E-City.";
-                        zoneSelect.value = "4"; // Auto-select E-City
+                        zoneSelect.value = "4"; 
                     } else {
                         feedback.className = "form-text fw-bold small mt-1 text-warning";
                         feedback.innerText = "⚠️ Custom Zone: Outside default tech perimeter. Select your delivery hub manually below.";
@@ -251,7 +251,6 @@
             }
         }
 
-        // 4. Simulated Single-Click Google Authenticator Flow
         function simulateGoogleAuth(actionType) {
             showAlert('primary', 'Connecting to secure Google Account window...');
 
@@ -287,7 +286,6 @@
             }, 800);
         }
 
-        // 5. Submit Registration
         async function handleRegister(e) {
             e.preventDefault();
             showAlert('', '');
@@ -326,24 +324,43 @@
             }
         }
 
-        // 6. Submit Standard Phone Login
         async function handleLogin(e) {
-            e.preventDefault();
-            showAlert('', '');
+            e.preventDefault(); 
+            showAlert('primary', 'Authenticating...');
 
-            const payload = { phoneNumber: document.getElementById('loginPhone').value };
+            const phoneNumber = document.getElementById('loginPhone').value;
 
-            const response = await fetch(`${API_BASE_URL}/Auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phoneNumber }) 
+                });
 
-            const data = await response.json();
-            if (response.ok) {
-                saveSessionAndRedirect(data);
-            } else {
-                showAlert('danger', data.message || 'Login verification rejected.');
+                const user = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userId', user.userId);
+                    localStorage.setItem('fullName', user.fullName);
+                    localStorage.setItem('userRole', user.role);
+                    localStorage.setItem('zoneId', user.zoneId);
+                    localStorage.setItem('zoneName', user.zoneName);
+
+                    showAlert('success', `Welcome back, ${user.fullName}! Redirecting...`);
+
+                    setTimeout(() => {
+                        if (user.role === 'Cook') {
+                            window.location.href = '/cook/dashboard.html';
+                        } else {
+                            window.location.href = '/customer/select-techpark.html';
+                        }
+                    }, 1000);
+                } else {
+                    showAlert('danger', user.message || "Invalid credentials. Please try again.");
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('danger', "Server connection failed. Is the API running?");
             }
         }
 

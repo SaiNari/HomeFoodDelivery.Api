@@ -22,17 +22,25 @@ namespace HomeFoodDelivery.Api.Controllers
             return await _context.DailyMenus.ToListAsync();
         }
 
-        // Consolidated POST method - Single entry point
+        [HttpGet("kitchen/{cookId}")]
+        public async Task<ActionResult<IEnumerable<DailyMenu>>> GetMenusForKitchen(int cookId)
+        {
+            var menus = await _context.DailyMenus
+                .Where(m => m.CookId == cookId && m.AvailablePortions > 0 && m.MenuDate.Date >= DateTime.UtcNow.Date)
+                .OrderBy(m => m.ShiftId)
+                .ToListAsync();
+
+            return Ok(menus);
+        }
+
         [HttpPost]
         public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu menu)
         {
             try
             {
-                // Set creation dates if not set
                 menu.CreatedAt = DateTime.UtcNow;
                 if (menu.MenuDate == default) menu.MenuDate = DateTime.UtcNow;
 
-                // Validate that Required fields are present
                 if (menu.CookId == 0 || menu.ShiftId == 0)
                 {
                     return BadRequest("CookId and ShiftId are required.");
@@ -45,7 +53,6 @@ namespace HomeFoodDelivery.Api.Controllers
             }
             catch (Exception ex)
             {
-                // Returns the actual error message if something goes wrong
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }

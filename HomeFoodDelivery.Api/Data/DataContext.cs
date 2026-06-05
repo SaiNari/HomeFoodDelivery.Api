@@ -19,7 +19,6 @@ public class DataContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Enforce the unique database constraints
         modelBuilder.Entity<User>()
             .HasIndex(u => u.PhoneNumber)
             .IsUnique();
@@ -28,14 +27,12 @@ public class DataContext : DbContext
             .HasIndex(o => o.IdempotencyKey)
             .IsUnique();
 
-        // --- NEW CODE: Seed the Master Shift Times ---
         modelBuilder.Entity<MealShift>().HasData(
             new MealShift { ShiftId = 1, ShiftName = "Breakfast", EntryOpenTime = new TimeSpan(6, 0, 0), CutoffTime = new TimeSpan(7, 30, 0), DeliveryTime = new TimeSpan(8, 15, 0) },
             new MealShift { ShiftId = 2, ShiftName = "Lunch", EntryOpenTime = new TimeSpan(9, 0, 0), CutoffTime = new TimeSpan(11, 0, 0), DeliveryTime = new TimeSpan(12, 0, 0) },
             new MealShift { ShiftId = 3, ShiftName = "Dinner", EntryOpenTime = new TimeSpan(15, 0, 0), CutoffTime = new TimeSpan(18, 30, 0), DeliveryTime = new TimeSpan(19, 30, 0) }
         );
 
-        // Seed Bengaluru Delivery Zones & Tech Parks
         modelBuilder.Entity<DeliveryZone>().HasData(
             new DeliveryZone { ZoneId = 1, TechParkName = "Bagmane Tech Park", ServicingNeighborhoods = "CV Raman Nagar, Mahadevapura, Indiranagar" },
             new DeliveryZone { ZoneId = 2, TechParkName = "Manyata Tech Park", ServicingNeighborhoods = "Hebbal, Nagawara, Thanisandra" },

@@ -11,21 +11,21 @@ public class RegisterRequest
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required]
-    public string UserRole { get; set; } = string.Empty; // "Customer" or "Cook"
+    public string UserRole { get; set; } = string.Empty; 
 
     public string AddressText { get; set; } = string.Empty;
 
     [Required]
-    public int ZoneId { get; set; } // Auto-mapped via Pincode or manual choice
+    public int ZoneId { get; set; }
 
     [MaxLength(6)]
     public string? Pincode { get; set; }
 
-    public string? GoogleId { get; set; } // Optional social key
+    public string? GoogleId { get; set; }
 }
 
 public class LoginRequest
 {
     public string? PhoneNumber { get; set; }
-    public string? GoogleId { get; set; } // Can log in directly via Google ID
+    public string? GoogleId { get; set; } 
 }

@@ -27,7 +27,6 @@ namespace HomeFoodDelivery.Api.Controllers
             if (!string.IsNullOrEmpty(request.GoogleId) && await _context.Users.AnyAsync(u => u.GoogleId == request.GoogleId))
                 return BadRequest(new { message = "This Google account is already linked to a profile." });
 
-            // 2. Build the user account with our hyper-local area markers
             var newUser = new User
             {
                 FullName = request.FullName,
@@ -68,13 +67,12 @@ namespace HomeFoodDelivery.Api.Controllers
             if (user == null)
                 return Unauthorized(new { message = "Account not found. Proceed to registration." });
 
-            // 2. Return role-routing data to guide the UI
             return Ok(new
             {
                 message = "Login successful",
                 userId = user.UserId,
                 fullName = user.FullName,
-                role = user.UserRole,       // "Customer" or "Cook"
+                role = user.UserRole,  
                 zoneId = user.ZoneId,
                 zoneName = user.DeliveryZone?.TechParkName
             });

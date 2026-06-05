@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Active Kitchens - OotaBox</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>if (!localStorage.getItem('userTechPark')) window.location.href = 'select-techpark.html';</script>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <span class="navbar-brand fw-bold text-danger fs-4">OotaBox</span>
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center bg-light px-3 py-2 rounded-pill border d-none d-md-flex">
+                    <span class="text-muted small me-2">Delivering to: <strong class="text-dark" id="parkDisplay"></strong></span>
+                    <a href="#" class="text-danger small text-decoration-none fw-bold" onclick="changeLocation()">Change</a>
+                </div>
+
+                <!-- Navigation Action Buttons -->
+                <div class="d-flex align-items-center gap-2">
+                    <a href="dashboard.html" class="btn btn-sm btn-outline-dark fw-bold">🧾 My Orders</a>
+                    <button class="btn btn-sm btn-outline-danger fw-bold" onclick="localStorage.clear(); window.location.href='/index.html'">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h3 class="mb-1 fw-bold text-dark">Kitchens Near You</h3>
+        <p class="text-muted mb-4">Freshly prepared home meals for your workday.</p>
+
+        <div id="kitchenGrid" class="row g-4">
+        </div>
+    </div>
+
+    <script>
+        const currentPark = localStorage.getItem('userTechPark');
+        document.getElementById('parkDisplay').innerText = currentPark;
+
+        function changeLocation() {
+            localStorage.removeItem('userTechPark');
+            window.location.href = 'select-techpark.html';
+        }
+
+        async function loadKitchens() {
+            try {
+                const response = await fetch('/api/Users');
+
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                const allUsers = await response.json();
+                const allCooks = allUsers.filter(u => u.userRole === 'Cook');
+
+                const cooks = allCooks.filter(c => c.techPark === currentPark || !c.techPark);
+
+                const grid = document.getElementById('kitchenGrid');
+                grid.innerHTML = '';
+
+                if (cooks.length === 0) {
+                    grid.innerHTML = '<div class="col-12 text-center mt-5"><h5 class="text-muted">No kitchens online in this area yet.</h5></div>';
+                    return;
+                }
+
+                cooks.forEach(cook => {
+                    // Simulate a hyper-local distance (1.0 to 4.5 km)
+                    const mockDistance = (Math.random() * 3.5 + 1.0).toFixed(1);
+                    const address = cook.addressText ? cook.addressText : 'Nearby Residential Area'; // Matched property to Users table
+
+                    grid.innerHTML += `
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" onclick="enterKitchen(${cook.userId}, '${cook.fullName}')" style="cursor:pointer; transition: transform 0.2s;">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title fw-bold mb-0 text-dark">${cook.fullName}'s Kitchen</h5>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">Open</span>
+                            </div>
+                            <p class="text-muted small mb-2">
+                                <span class="text-danger fw-bold">📍 Address:</span> ${address}
+                            </p>
+                            <p class="text-muted small mb-0">
+                                <span class="text-primary fw-bold">🛵 Distance:</span> ${mockDistance} km away
+                            </p>
+                        </div>
+                    </div>
+                </div>`;
+                });
+            } catch (error) {
+                console.error("Kitchen Load Error:", error);
+                document.getElementById('kitchenGrid').innerHTML = '<div class="col-12 text-danger fw-bold mt-4">Error loading network. Please ensure the backend API is running.</div>';
+            }
+        }
+
+        function enterKitchen(cookId, cookName) {
+            localStorage.setItem('activeCookId', cookId);
+            localStorage.setItem('activeCookName', cookName);
+            window.location.href = 'menu.html';
+        }
+
+        loadKitchens();
+    </script>
+</body>
+</html>

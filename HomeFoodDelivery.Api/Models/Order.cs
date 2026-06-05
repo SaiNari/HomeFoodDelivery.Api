@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization; // <-- Added for JSON control
+using System.Text.Json.Serialization; 
 
 namespace HomeFoodDelivery.Api.Models;
 
@@ -12,7 +12,7 @@ public class Order
     [Required]
     public int CustomerId { get; set; }
 
-    [JsonIgnore] // <-- Hide User object from Swagger
+    [JsonIgnore] 
     [ForeignKey(nameof(CustomerId))]
     public User? Customer { get; set; }
 
@@ -33,6 +33,10 @@ public class Order
     [Required]
     [MaxLength(30)]
     public string OrderStatus { get; set; } = "Pending";
+
+    [Required]
+    [MaxLength(30)]
+    public string PaymentStatus { get; set; } = "Pending";
 
     [Required]
     public Guid IdempotencyKey { get; set; }

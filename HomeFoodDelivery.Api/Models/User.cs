@@ -19,7 +19,7 @@ public class User
 
     [Required]
     [MaxLength(20)]
-    public string UserRole { get; set; } = string.Empty; // "Customer" or "Cook"
+    public string UserRole { get; set; } = string.Empty; 
 
     public int? ZoneId { get; set; }
 
@@ -28,13 +28,21 @@ public class User
     public DeliveryZone? DeliveryZone { get; set; }
 
     public string? AddressText { get; set; }
-
-    // --- NEW FIELD: For neighborhood mapping ---
     [MaxLength(6)]
     public string? Pincode { get; set; }
 
-    // --- NEW FIELD: For social authentication ---
     public string? GoogleId { get; set; }
+
+    [MaxLength(100)]
+    public string? KitchenName { get; set; }
+
+    [MaxLength(250)]
+    public string? KitchenAddress { get; set; }
+
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+
+    public double Rating { get; set; } = 5.0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
