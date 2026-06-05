@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization; // <-- 1. Add this for JSON control
+using System.Text.Json.Serialization;
 
 namespace HomeFoodDelivery.Api.Models;
 
@@ -12,14 +12,14 @@ public class DailyMenu
     [Required]
     public int CookId { get; set; }
 
-    [JsonIgnore] // <-- 2. Tells Swagger to hide this massive object
+    [JsonIgnore]
     [ForeignKey(nameof(CookId))]
     public User? Cook { get; set; }
 
     [Required]
     public int ShiftId { get; set; }
 
-    [JsonIgnore] // <-- 3. Tells Swagger to hide this massive object
+    [JsonIgnore] 
     [ForeignKey(nameof(ShiftId))]
     public MealShift? MealShift { get; set; }
 
@@ -31,6 +31,11 @@ public class DailyMenu
     public string DishName { get; set; } = string.Empty;
 
     public string? Description { get; set; }
+
+    public string? ImageUrl { get; set; }
+
+    public bool IsVegetarian { get; set; } = true;
+    public int PreparationTimeMinutes { get; set; } = 30;
 
     [Required]
     public int AvailablePortions { get; set; }

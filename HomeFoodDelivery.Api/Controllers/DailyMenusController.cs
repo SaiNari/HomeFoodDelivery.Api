@@ -16,22 +16,45 @@ namespace HomeFoodDelivery.Api.Controllers
             _context = context;
         }
 
-        // GET: api/DailyMenus
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DailyMenu>>> GetDailyMenus()
         {
             return await _context.DailyMenus.ToListAsync();
         }
 
-        // POST: api/DailyMenus
-        [HttpPost]
-        public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu dailyMenu)
+        [HttpGet("kitchen/{cookId}")]
+        public async Task<ActionResult<IEnumerable<DailyMenu>>> GetMenusForKitchen(int cookId)
         {
-            _context.DailyMenus.Add(dailyMenu);
-            await _context.SaveChangesAsync();
+            var menus = await _context.DailyMenus
+                .Where(m => m.CookId == cookId && m.AvailablePortions > 0 && m.MenuDate.Date >= DateTime.UtcNow.Date)
+                .OrderBy(m => m.ShiftId)
+                .ToListAsync();
 
-            // Return the newly created menu
-            return CreatedAtAction(nameof(GetDailyMenus), new { id = dailyMenu.MenuId }, dailyMenu);
+            return Ok(menus);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu menu)
+        {
+            try
+            {
+                menu.CreatedAt = DateTime.UtcNow;
+                if (menu.MenuDate == default) menu.MenuDate = DateTime.UtcNow;
+
+                if (menu.CookId == 0 || menu.ShiftId == 0)
+                {
+                    return BadRequest("CookId and ShiftId are required.");
+                }
+
+                _context.DailyMenus.Add(menu);
+                await _context.SaveChangesAsync();
+
+                return Ok(menu);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using HomeFoodDelivery.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFoodDelivery.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260604190629_AddImageUrlToDailyMenu")]
+    partial class AddImageUrlToDailyMenu
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -43,14 +46,8 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsVegetarian")
-                        .HasColumnType("INTEGER");
-
                     b.Property<DateTime>("MenuDate")
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("PreparationTimeMinutes")
-                        .HasColumnType("INTEGER");
 
                     b.Property<decimal>("PricePerPortion")
                         .HasColumnType("decimal(10,2)");
@@ -76,12 +73,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("REAL");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("REAL");
-
                     b.Property<string>("ServicingNeighborhoods")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -101,8 +92,6 @@ namespace HomeFoodDelivery.Api.Migrations
                         {
                             ZoneId = 1,
                             IsActive = true,
-                            Latitude = 0.0,
-                            Longitude = 0.0,
                             ServicingNeighborhoods = "CV Raman Nagar, Mahadevapura, Indiranagar",
                             TechParkName = "Bagmane Tech Park"
                         },
@@ -110,8 +99,6 @@ namespace HomeFoodDelivery.Api.Migrations
                         {
                             ZoneId = 2,
                             IsActive = true,
-                            Latitude = 0.0,
-                            Longitude = 0.0,
                             ServicingNeighborhoods = "Hebbal, Nagawara, Thanisandra",
                             TechParkName = "Manyata Tech Park"
                         },
@@ -119,8 +106,6 @@ namespace HomeFoodDelivery.Api.Migrations
                         {
                             ZoneId = 3,
                             IsActive = true,
-                            Latitude = 0.0,
-                            Longitude = 0.0,
                             ServicingNeighborhoods = "Bellandur, Marathahalli, Sarjapur Road",
                             TechParkName = "RMZ Ecospace"
                         },
@@ -128,8 +113,6 @@ namespace HomeFoodDelivery.Api.Migrations
                         {
                             ZoneId = 4,
                             IsActive = true,
-                            Latitude = 0.0,
-                            Longitude = 0.0,
                             ServicingNeighborhoods = "Electronic City, Bommanahalli",
                             TechParkName = "Electronic City Phase 1"
                         });
@@ -209,11 +192,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<DateTime>("OrderTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
@@ -252,20 +230,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<string>("GoogleId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("KitchenAddress")
-                        .HasMaxLength(250)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("KitchenName")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("REAL");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("REAL");
-
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -274,9 +238,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<string>("Pincode")
                         .HasMaxLength(6)
                         .HasColumnType("TEXT");
-
-                    b.Property<double>("Rating")
-                        .HasColumnType("REAL");
 
                     b.Property<string>("UserRole")
                         .IsRequired()

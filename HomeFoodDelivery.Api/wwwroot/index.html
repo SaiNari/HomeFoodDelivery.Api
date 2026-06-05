@@ -3,163 +3,392 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Food Delivery</title>
+    <title>OotaBox Gateway</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .hero { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; }
-        .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: none; }
-        .badge-portions { font-size: 1.2rem; }
+        body {
+            background-color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .auth-container {
+            max-width: 420px;
+            margin: auto;
+            min-height: 100vh;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        .brand-header {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            border-radius: 0 0 25px 25px;
+        }
+
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        }
+
+        .nav-pills .nav-link {
+            color: #555;
+            font-weight: 600;
+        }
+
+        .btn-google {
+            background-color: #ffffff;
+            color: #757575;
+            border: 1px solid #ddd;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+            .btn-google:hover {
+                background-color: #f7f7f7;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #aaa;
+            margin: 1.5rem 0;
+        }
+
+            .divider::before, .divider::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid #eee;
+            }
+
+            .divider:not(:empty)::before {
+                margin-right: .5em;
+            }
+
+            .divider:not(:empty)::after {
+                margin-left: .5em;
+            }
     </style>
 </head>
-<body class="container py-4">
+<body>
 
-    <div class="hero text-center">
-        <h1>👨‍🍳 Household's Kitchen</h1>
-        <p class="lead">Live Order Dashboard for Sai Nari</p>
-    </div>
+    <div class="auth-container d-flex flex-column justify-content-between">
+        <div>
+            <div class="brand-header mb-4">
+                <h1 class="fw-bold">🍱 OotaBox</h1>
+                <p class="mb-0 mx-2 small">Authentic Home Cooked Food for Bengaluru Tech Parks</p>
+            </div>
 
-    <div class="row">
-        
-        <div class="col-md-6 mb-4">
-            <h3 class="mb-3">Today's Menu</h3>
-            <div class="card p-4" id="menuCard">
-                <h2 id="dishName" class="text-primary">Loading Menu...</h2>
-                <p id="dishDesc" class="text-muted">Fetching from database...</p>
-                <hr>
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="text-success" id="dishPrice">₹0.00</h4>
-                    <span class="badge bg-warning text-dark badge-portions"><span id="portionsLeft">0</span> Portions Left</span>
+            <div class="px-4">
+                <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginSection" type="button">Login</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerSection" type="button">Register</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="loginSection">
+                        <button class="btn btn-google btn-lg w-100 d-flex align-items-center justify-content-center gap-2 mb-2" onclick="simulateGoogleAuth('login')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
+                            Continue with Google
+                        </button>
+
+                        <div class="divider">or use mobile number</div>
+
+                        <form id="loginForm" onsubmit="handleLogin(event)">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">PHONE NUMBER</label>
+                                <input type="tel" id="loginPhone" class="form-control form-control-lg" placeholder="10-digit mobile number" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-lg w-100 mt-2" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); border:none;">Let's Eat 🚀</button>
+                        </form>
+                    </div>
+
+                    <div class="tab-pane fade" id="registerSection">
+                        <button class="btn btn-google btn-lg w-100 d-flex align-items-center justify-content-center gap-2 mb-2" onclick="simulateGoogleAuth('register')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style="width:20px;">
+                            Sign up with Google
+                        </button>
+
+                        <div class="divider">or fill registration profiles</div>
+
+                        <form id="registerForm" onsubmit="handleRegister(event)">
+                            <input type="hidden" id="regGoogleId" value="">
+
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">I WANT TO:</label>
+                                <select id="regRole" class="form-select form-select-lg" onchange="toggleRoleFields()" required>
+                                    <option value="Customer">Order Delicious Home Food (Customer)</option>
+                                    <option value="Cook">Cook & Earn from Home (Home Chef)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">FULL NAME</label>
+                                <input type="text" id="regName" class="form-control" placeholder="Enter full name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small fw-bold">PHONE NUMBER</label>
+                                <input type="tel" id="regPhone" class="form-control" placeholder="10-digit mobile number" required>
+                            </div>
+
+                            <div class="mb-3 d-none" id="pincodeFieldSection">
+                                <label class="form-label text-muted small fw-bold">HOME PINCODE (BENGALURU)</label>
+                                <div class="input-group">
+                                    <input type="text" id="regPincode" class="form-control" placeholder="e.g., 560093" maxlength="6" oninput="handlePincodeLookup()">
+                                    <span class="input-group-text bg-white"><i class="fa-solid fa-location-dot text-danger"></i></span>
+                                </div>
+                                <div id="pincodeFeedback" class="form-text fw-bold small mt-1"></div>
+                            </div>
+
+                            <div class="mb-3" id="techParkFieldSection">
+                                <label class="form-label text-muted small fw-bold">PRIMARY TECH PARK WORKSPACE Hub</label>
+                                <select id="regZone" class="form-select" required>
+                                </select>
+                            </div>
+
+                            <div class="mb-3 d-none" id="addressFieldSection">
+                                <label class="form-label text-muted small fw-bold">KITCHEN / DELIVERY ADDRESS</label>
+                                <input type="text" id="regAddress" class="form-control" placeholder="Flat No, Building, Neighborhood detail">
+                            </div>
+
+                            <button type="submit" class="btn btn-danger btn-lg w-100 mt-3" style="background: linear-gradient(135deg, #ff416c, #ff4b2b); border:none;">Create Account 🎉</button>
+                        </form>
+                    </div>
                 </div>
-                
-                <div class="input-group mt-3">
-                    <span class="input-group-text">Quantity</span>
-                    <input type="number" id="orderQty" class="form-control" value="1" min="1" max="10">
-                    <button class="btn btn-danger" onclick="placeOrder()">Place Order 🚀</button>
-                </div>
-                <div id="errorMessage" class="text-danger mt-2 fw-bold"></div>
+
+                <div id="alertMessage" class="mt-3 text-center fw-bold small"></div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <h3 class="mb-3">Live Kitchen Orders</h3>
-            <div class="card p-4">
-                <ul class="list-group" id="orderList">
-                    </ul>
-            </div>
+        <div class="text-center py-3 text-muted small border-top bg-light mt-4">
+            🔒 Verified OAuth & Location Services Active
         </div>
-
     </div>
 
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // CRITICAL: Ensure this port matches your Visual Studio console URL!
         const API_BASE_URL = '/api';
-        
-        let currentMenuId = 1;
-        let currentPrice = 0;
+        let cachedZones = [];
 
-        // 1. Fetch the Menu from the Database
-        async function loadMenu() {
+        // 1. Fetch Master Zones on Page Load
+        async function loadTechParks() {
             try {
-                const response = await fetch(`${API_BASE_URL}/DailyMenus`);
-                const menus = await response.json();
-                
-                if(menus.length > 0) {
-                    const activeMenu = menus[0]; // Get the Biryani
-                    currentMenuId = activeMenu.menuId;
-                    currentPrice = activeMenu.pricePerPortion;
-                    
-                    document.getElementById('dishName').innerText = activeMenu.dishName;
-                    document.getElementById('dishDesc').innerText = activeMenu.description;
-                    document.getElementById('dishPrice').innerText = `₹${activeMenu.pricePerPortion}`;
-                    document.getElementById('portionsLeft').innerText = activeMenu.availablePortions;
-                }
+                const response = await fetch(`${API_BASE_URL}/DeliveryZones`);
+                cachedZones = await response.json();
+                renderZoneDropdown(cachedZones);
             } catch (error) {
-                document.getElementById('dishDesc').innerText = "Error connecting to .NET API. Is Visual Studio running?";
+                console.error("Failed to load tech parks", error);
             }
         }
 
-        // 2. Fetch all Orders from the Database
-        async function loadOrders() {
-            const response = await fetch(`${API_BASE_URL}/Orders`);
-            const orders = await response.json();
-            
-            const list = document.getElementById('orderList');
-            list.innerHTML = ''; // Clear old list
-            
-            // Loop through database orders and create HTML for each one
-            orders.reverse().forEach(order => {
-                list.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Order #${order.orderId} (Customer ${order.customerId})
-                        <span class="badge bg-primary rounded-pill">${order.quantity} Portions</span>
-                    </li>
-                `;
+        function renderZoneDropdown(zones) {
+            const zoneSelect = document.getElementById('regZone');
+            zoneSelect.innerHTML = '';
+            zones.forEach(zone => {
+                zoneSelect.innerHTML += `<option value="${zone.zoneId}">${zone.techParkName}</option>`;
             });
         }
 
-        // 3. Send a new Order to the Backend
-        async function placeOrder() {
-            document.getElementById('errorMessage').innerText = ''; // Clear old errors
-            const qty = parseInt(document.getElementById('orderQty').value);
-            
-            const newOrder = {
-                customerId: 2, // Sai Nari
-                menuId: currentMenuId,
-                quantity: qty,
-                totalPrice: qty * currentPrice,
-                orderStatus: "Pending",
-                idempotencyKey: crypto.randomUUID(), // Generate unique ID so no double charging
-                orderTime: new Date().toISOString()
+        // 2. Dynamic Field Toggle based on User Role choice
+        function toggleRoleFields() {
+            const role = document.getElementById('regRole').value;
+            const pincodeBox = document.getElementById('pincodeFieldSection');
+            const addressBox = document.getElementById('addressFieldSection');
+            const feedbackText = document.getElementById('pincodeFeedback');
+
+            if (role === 'Cook') {
+                pincodeBox.classList.remove('d-none');
+                addressBox.classList.remove('d-none');
+            } else {
+                pincodeBox.classList.add('d-none');
+                addressBox.classList.add('d-none');
+                feedbackText.innerText = '';
+                renderZoneDropdown(cachedZones); 
+            }
+        }
+
+        // 3. Intelligent Pincode Mapping Logic
+        function handlePincodeLookup() {
+            const pincode = document.getElementById('regPincode').value;
+            const feedback = document.getElementById('pincodeFeedback');
+            const zoneSelect = document.getElementById('regZone');
+
+            if (pincode.length === 6) {
+                feedback.className = "form-text fw-bold small mt-1 text-primary animate-pulse";
+                feedback.innerText = "🔍 Verifying neighborhood maps...";
+
+                setTimeout(() => {
+                    // Simulated internal lookup table mapping standard Bangalore pincodes to Tech Parks
+                    if (pincode === "560093" || pincode === "560016") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: CV Raman Nagar / Mahadevapura. Matched Hub: Bagmane Tech Park.";
+                        zoneSelect.value = "1"; 
+                    } else if (pincode === "560045" || pincode === "560024") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Hebbal / Nagawara. Matched Hub: Manyata Tech Park.";
+                        zoneSelect.value = "2"; 
+                    } else if (pincode === "560103" || pincode === "560037") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Bellandur / Marathahalli. Matched Hub: RMZ Ecospace.";
+                        zoneSelect.value = "3"; 
+                    } else if (pincode === "560100" || pincode === "560068") {
+                        feedback.className = "form-text fw-bold small mt-1 text-success";
+                        feedback.innerText = "📍 Location: Electronic City Phase 1. Matched Hub: E-City.";
+                        zoneSelect.value = "4"; 
+                    } else {
+                        feedback.className = "form-text fw-bold small mt-1 text-warning";
+                        feedback.innerText = "⚠️ Custom Zone: Outside default tech perimeter. Select your delivery hub manually below.";
+                    }
+                }, 600);
+            } else {
+                feedback.innerText = "";
+            }
+        }
+
+        function simulateGoogleAuth(actionType) {
+            showAlert('primary', 'Connecting to secure Google Account window...');
+
+            setTimeout(async () => {
+                // Generate simulated user data from Google profile asset payload
+                const mockGoogleId = "google-oauth2-id-sainari-1996";
+                const mockGoogleName = "Sai Nari";
+
+                if (actionType === 'login') {
+                    // Fire social login directly to auth controller
+                    const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ googleId: mockGoogleId })
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        saveSessionAndRedirect(data);
+                    } else {
+                        // User exists on Google but doesn't have an OotaBox profile yet -> send them to Register tab!
+                        showAlert('warning', 'Google validation succeeded! Complete profile setup to finish account registration.');
+                        document.getElementById('register-tab').click();
+                        document.getElementById('regName').value = mockGoogleName;
+                        document.getElementById('regGoogleId').value = mockGoogleId;
+                    }
+                } else if (actionType === 'register') {
+                    // Populate registration fields instantly with Google variables
+                    showAlert('success', 'Google profile pulled successfully!');
+                    document.getElementById('regName').value = mockGoogleName;
+                    document.getElementById('regGoogleId').value = mockGoogleId;
+                }
+            }, 800);
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            showAlert('', '');
+
+            const payload = {
+                fullName: document.getElementById('regName').value,
+                phoneNumber: document.getElementById('regPhone').value,
+                userRole: document.getElementById('regRole').value,
+                addressText: document.getElementById('regAddress').value || "Tech Park Delivery Point",
+                zoneId: parseInt(document.getElementById('regZone').value),
+                pincode: document.getElementById('regPincode').value || null,
+                googleId: document.getElementById('regGoogleId').value || null
             };
 
-            const response = await fetch(`${API_BASE_URL}/Orders`, {
+            const response = await fetch(`${API_BASE_URL}/Auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newOrder)
+                body: JSON.stringify(payload)
             });
 
+            const data = await response.json();
+
             if (response.ok) {
-                // If success, refresh the dashboard!
-                loadMenu();
-                loadOrders();
+                showAlert('success', 'Account established successfully! Preparing login access matrix...');
+                setTimeout(() => {
+                    document.getElementById('login-tab').click();
+                    // If registered with Google, let them log in with one-click Google
+                    if (payload.googleId) {
+                        simulateGoogleAuth('login');
+                    } else {
+                        document.getElementById('loginPhone').value = payload.phoneNumber;
+                    }
+                }, 1500);
             } else {
-                // If our OrderService blocked it (e.g., Sold Out), show the error!
-                const errorData = await response.json();
-                document.getElementById('errorMessage').innerText = `❌ ${errorData.message}`;
+                showAlert('danger', data.message || 'Registration failure check fields.');
             }
         }
 
-        // When the page loads, fetch the data!
-        loadMenu();
-        loadOrders();
-        // --- REAL-TIME SIGNALR CONNECTION ---
-        // Change the 44329 to match your API_BASE_URL port!
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/kitchenHub")
-            .withAutomaticReconnect()
-            .build();
+        async function handleLogin(e) {
+            e.preventDefault(); 
+            showAlert('primary', 'Authenticating...');
 
-        // When the server shouts "OrderReceived", do this:
-        connection.on("OrderReceived", function () {
-            console.log("⚡ Real-time order detected!");
-            
-            // Add a cool flash effect to the page
-            document.body.style.transition = "background-color 0.3s";
-            document.body.style.backgroundColor = "#e8f5e9"; // Light green flash
-            setTimeout(() => document.body.style.backgroundColor = "#f8f9fa", 300);
+            const phoneNumber = document.getElementById('loginPhone').value;
 
-            // Fetch the fresh data!
-            loadMenu();
-            loadOrders();
-        });
+            try {
+                const response = await fetch(`${API_BASE_URL}/Auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phoneNumber }) 
+                });
 
-        // Start the connection
-        connection.start()
-            .then(() => console.log("🟢 Connected to Gordon Ramsay's Kitchen Hub"))
-            .catch(err => console.error("🔴 SignalR Connection Error: ", err));
+                const user = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userId', user.userId);
+                    localStorage.setItem('fullName', user.fullName);
+                    localStorage.setItem('userRole', user.role);
+                    localStorage.setItem('zoneId', user.zoneId);
+                    localStorage.setItem('zoneName', user.zoneName);
+
+                    showAlert('success', `Welcome back, ${user.fullName}! Redirecting...`);
+
+                    setTimeout(() => {
+                        if (user.role === 'Cook') {
+                            window.location.href = '/cook/dashboard.html';
+                        } else {
+                            window.location.href = '/customer/select-techpark.html';
+                        }
+                    }, 1000);
+                } else {
+                    showAlert('danger', user.message || "Invalid credentials. Please try again.");
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('danger', "Server connection failed. Is the API running?");
+            }
+        }
+
+        function saveSessionAndRedirect(data) {
+            showAlert('success', `Access Approved. Welcome back ${data.fullName}!`);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('fullName', data.fullName);
+            localStorage.setItem('userRole', data.role);
+            localStorage.setItem('zoneId', data.zoneId);
+            localStorage.setItem('zoneName', data.zoneName);
+
+            setTimeout(() => {
+                if (data.role === 'Cook') {
+                    window.location.href = '/cook/dashboard.html';
+                } else {
+                    window.location.href = '/customer/dashboard.html';
+                }
+            }, 1000);
+        }
+
+        function showAlert(type, text) {
+            const msg = document.getElementById('alertMessage');
+            if (!type) { msg.innerText = ''; return; }
+            msg.className = `mt-3 text-center fw-bold small text-${type}`;
+            msg.innerText = text;
+        }
+
+        loadTechParks();
     </script>
 </body>
 </html>

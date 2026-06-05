@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu - OotaBox</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>if (!localStorage.getItem('userTechPark')) window.location.href = 'select-techpark.html';</script>
+</head>
+<body class="bg-light pb-5">
+    <nav class="navbar navbar-light bg-white shadow-sm sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-dark text-decoration-none px-0" onclick="window.location.href='kitchen-list.html'">
+                🔙 Back
+            </button>
+            <span class="navbar-brand fw-bold text-dark fs-5 mx-auto" id="kitchenNameDisplay">Kitchen Menu</span>
+
+            <!-- Navigation Action Buttons -->
+            <div class="d-flex align-items-center gap-2">
+                <a href="dashboard.html" class="btn btn-sm btn-outline-dark fw-bold">🧾 My Orders</a>
+                <button class="btn btn-sm btn-outline-danger fw-bold" onclick="localStorage.clear(); window.location.href='/index.html'">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div id="menuList" class="row g-4"></div>
+    </div>
+
+    <div class="fixed-bottom bg-white border-top p-3 shadow-lg d-flex justify-content-between align-items-center">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-muted small">Cart Total</span><br>
+                <strong class="fs-5 text-dark" id="cartTotalDisplay">₹0</strong>
+            </div>
+            <button class="btn btn-danger btn-lg px-5 fw-bold rounded-pill shadow" onclick="window.location.href='checkout.html'">View Cart →</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('kitchenNameDisplay').innerText = localStorage.getItem('activeCookName') + "'s Kitchen";
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        updateCartUI();
+
+        async function loadMenu() {
+            const cookId = localStorage.getItem('activeCookId');
+            const res = await fetch('/api/DailyMenus');
+            const allMenus = await res.json();
+            const menus = allMenus.filter(m => m.cookId == cookId);
+
+            const list = document.getElementById('menuList');
+            if(menus.length === 0) list.innerHTML = '<p class="text-muted mt-4">Menu is being prepared. Check back soon.</p>';
+
+            menus.forEach(m => {
+                const imgTag = m.imageUrl ? `<img src="${m.imageUrl}" class="card-img-top" style="height: 180px; object-fit: cover;">` : `<div class="bg-secondary text-white text-center py-5">No Image</div>`;
+
+                list.innerHTML += `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                            ${imgTag}
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h5 class="fw-bold text-dark">${m.dishName}</h5>
+                                <p class="text-muted small mb-3">${m.description || 'Delicious home cooked meal.'}</p>
+                                <h5 class="text-danger fw-bold mt-auto mb-3">₹${m.pricePerPortion}</h5>
+
+                                <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3 border">
+                                    <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, -1)">-</button>
+                                    <span id="display-qty-${m.menuId}" class="fw-bold px-2">1</span>
+                                    <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, 1)">+</button>
+                                    <button onclick="addToCart(${m.menuId}, '${m.dishName}', ${m.pricePerPortion})" class="btn btn-dark btn-sm rounded-3 px-4 ms-2 fw-bold">ADD</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function changeQty(id, change) {
+            let el = document.getElementById(`display-qty-${id}`);
+            let current = parseInt(el.innerText);
+            if (current + change > 0) el.innerText = current + change;
+        }
+
+        function addToCart(id, name, price) {
+            const qty = parseInt(document.getElementById(`display-qty-${id}`).innerText);
+            const existing = cart.find(i => i.id === id);
+            if(existing) existing.qty += qty;
+            else cart.push({ id, name, price, qty });
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
+            const btn = event.target;
+            btn.innerText = "ADDED ✓";
+            btn.classList.replace("btn-dark", "btn-success");
+            setTimeout(() => { btn.innerText = "ADD"; btn.classList.replace("btn-success", "btn-dark"); }, 1500);
+        }
+
+        function updateCartUI() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('cartTotalDisplay').innerText = "₹" + total;
+        }
+
+        loadMenu();
+    </script>
+</body>
+</html>
