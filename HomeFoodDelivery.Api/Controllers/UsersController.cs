@@ -79,5 +79,26 @@ namespace HomeFoodDelivery.Api.Controllers
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return Math.Round(R * c, 2); 
         }
+
+        [HttpPatch("{id}/profile")]
+        public async Task<IActionResult> UpdateCookProfile(int id, [FromBody] UserProfileUpdateDto profileDto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound("User not found.");
+
+            user.FacebookUrl = profileDto.FacebookUrl;
+            user.InstagramUrl = profileDto.InstagramUrl;
+            user.YouTubeUrl = profileDto.YouTubeUrl;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Profile updated successfully!" });
+        }
+
+        public class UserProfileUpdateDto
+        {
+            public string? FacebookUrl { get; set; }
+            public string? InstagramUrl { get; set; }
+            public string? YouTubeUrl { get; set; }
+        }
     }
 }

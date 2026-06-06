@@ -5,29 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu - OotaBox</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>if (!localStorage.getItem('userTechPark')) window.location.href = 'select-techpark.html';</script>
 </head>
 <body class="bg-light pb-5">
     <nav class="navbar navbar-light bg-white shadow-sm sticky-top">
         <div class="container d-flex justify-content-between align-items-center">
             <button class="btn btn-link text-dark text-decoration-none px-0" onclick="window.location.href='kitchen-list.html'">
-                🔙 Back
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
             </button>
-            <span class="navbar-brand fw-bold text-dark fs-5 mx-auto" id="kitchenNameDisplay">Kitchen Menu</span>
-
-            <!-- Navigation Action Buttons -->
-            <div class="d-flex align-items-center gap-2">
-                <a href="dashboard.html" class="btn btn-sm btn-outline-dark fw-bold">🧾 My Orders</a>
-                <button class="btn btn-sm btn-outline-danger fw-bold" onclick="localStorage.clear(); window.location.href='/index.html'">Logout</button>
-            </div>
+            <span class="navbar-brand fw-bold text-dark fs-5 mx-auto">Menu</span>
+            <a href="dashboard.html" class="btn btn-sm btn-outline-dark fw-bold">🧾 Orders</a>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div id="menuList" class="row g-4"></div>
+    <div class="container mt-3">
+        <!-- CLEAN PROFILE LINK -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white" onclick="window.location.href='cook-profile.html'" style="cursor: pointer;">
+            <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px;">
+                        <i class="fa-solid fa-kitchen-set fs-4 text-danger"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0" id="kitchenNameDisplay">Loading Kitchen...</h6>
+                        <span class="text-success small fw-bold"><i class="fa-solid fa-star text-warning"></i> <span id="ratingDisplay">--</span> (View Profile)</span>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-muted"></i>
+            </div>
+        </div>
+
+        <!-- MENU GRID -->
+        <div id="menuList" class="row g-4 mb-5"></div>
     </div>
 
-    <div class="fixed-bottom bg-white border-top p-3 shadow-lg d-flex justify-content-between align-items-center">
+    <!-- CART FOOTER -->
+    <div class="fixed-bottom bg-white border-top p-3 shadow-lg">
         <div class="container d-flex justify-content-between align-items-center">
             <div>
                 <span class="text-muted small">Cart Total</span><br>
@@ -38,40 +52,170 @@
     </div>
 
     <script>
-        document.getElementById('kitchenNameDisplay').innerText = localStorage.getItem('activeCookName') + "'s Kitchen";
         let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        updateCartUI();
+        async function initMenu() {
+            const cookId = localStorage.getItem('activeCookId');
 
+            // Load Cook Header Info
+            try {
+                const userRes = await fetch(`/api/Users/${cookId}`);
+                if (userRes.ok) {
+                    const cook = await userRes.json();
+                    document.getElementById('kitchenNameDisplay').innerText = cook.kitchenName || cook.fullName + "'s Kitchen";
+                    document.getElementById('ratingDisplay').innerText = cook.rating > 0 ? cook.rating.toFixed(1) : "New";
+                }
+            } catch (e) { console.error(e); }
+
+            // Load Menu Items
+            const res = await fetch('/api/DailyMenus');
+            const allMenus = await res.json();
+            const menus = allMenus.filter(m => m.cookId == cookId);
+            const list = document.getElementById('menuList');
+
+            if (menus.length === 0) list.innerHTML = '<p class="text-muted mt-4 text-center">Menu is being prepared. Check back soon.</p>';
+
+            menus.forEach(m => {
+                const imgTag = m.imageUrl ? `<img src="${m.imageUrl}" class="card-img-top" style="height: 180px; object-fit: cover;">` : `<div class="bg-secondary text-white text-center py-5">No Image</div>`;
+                list.innerHTML += `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                            ${imgTag}
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h5 class="fw-bold text-dark">${m.dishName}</h5>
+                                <p class="text-muted small mb-3">${m.description || 'Authentic home-cooked meal.'}</p>
+                                <h5 class="text-danger fw-bold mt-auto mb-3">₹${m.pricePerPortion}</h5>
+                                <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3 border">
+                                    <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, -1)">-</button>
+                                    <span id="display-qty-${m.menuId}" class="fw-bold px-2">1</span>
+                                    <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, 1)">+</button>
+                                    <button onclick="addToCart(${m.menuId}, '${m.dishName}', ${m.pricePerPortion})" class="btn btn-dark btn-sm rounded-3 px-4 ms-2 fw-bold">ADD</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            updateCartUI();
+        }
+
+        // 1. YouTube Link Extractor Logic
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // 2. Load Cook Details & Socials
+        async function loadCookProfile() {
+            const cookId = localStorage.getItem('activeCookId');
+            const res = await fetch(`/api/Users/${cookId}`);
+            if (!res.ok) return;
+            const cook = await res.json();
+
+            document.getElementById('profileNameDisplay').innerText = cook.kitchenName || (cook.fullName + "'s Kitchen");
+            document.getElementById('profileRatingDisplay').innerText = cook.rating.toFixed(1);
+
+            let socialHtml = '';
+            if (cook.instagramUrl) socialHtml += `<a href="${cook.instagramUrl}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill"><i class="fa-brands fa-instagram"></i> Insta</a>`;
+            if (cook.facebookUrl) socialHtml += `<a href="${cook.facebookUrl}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill"><i class="fa-brands fa-facebook"></i> FB</a>`;
+
+            if (cook.youTubeUrl) {
+                const ytId = extractYouTubeId(cook.youTubeUrl);
+                if (ytId) {
+                    // Embed Video directly in the app
+                    const ytContainer = document.getElementById('youtubeEmbedContainer');
+                    ytContainer.classList.remove('d-none');
+                    ytContainer.innerHTML = `<iframe width="100%" height="220" style="max-width: 500px; border-radius: 12px; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" src="https://www.youtube.com/embed/${ytId}" allowfullscreen></iframe>`;
+                } else {
+                    socialHtml += `<a href="${cook.youTubeUrl}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill"><i class="fa-brands fa-youtube"></i> YouTube</a>`;
+                }
+            }
+            document.getElementById('socialLinksContainer').innerHTML = socialHtml;
+        }
+
+        // 3. Load & Post Reviews
+        async function loadReviews() {
+            const cookId = localStorage.getItem('activeCookId');
+            const res = await fetch(`/api/Reviews/cook/${cookId}`);
+            const reviews = await res.json();
+            const list = document.getElementById('reviewsList');
+
+            if (reviews.length === 0) {
+                list.innerHTML = '<p class="text-muted text-center mt-3"><i class="fa-regular fa-comment-dots fs-1 mb-2"></i><br>No reviews yet. Be the first!</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            reviews.forEach(r => {
+                const stars = '⭐'.repeat(r.rating);
+                list.innerHTML += `
+                            <div class="card border-0 shadow-sm rounded-4">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong class="text-dark"><i class="fa-solid fa-user-circle text-muted me-1"></i> Customer</strong>
+                                        <span class="text-muted small">${new Date(r.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="mb-2">${stars}</div>
+                                    <p class="mb-0 text-secondary small">${r.comment}</p>
+                                </div>
+                            </div>
+                        `;
+            });
+        }
+
+        async function submitReview() {
+            const payload = {
+                cookId: parseInt(localStorage.getItem('activeCookId')),
+                customerId: parseInt(localStorage.getItem('userId') || 0), // Mock customer ID
+                orderId: 0, // In production, associate this with an actual Order ID
+                rating: parseInt(document.getElementById('reviewRating').value),
+                comment: document.getElementById('reviewComment').value
+            };
+
+            if (!payload.comment) return alert("Please type a review first!");
+
+            const res = await fetch('/api/Reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Review submitted!");
+                document.getElementById('reviewComment').value = '';
+                loadReviews();
+                loadCookProfile(); // Reloads average rating at the top
+            }
+        }
+
+        // 4. Menu & Cart Functions (Same as before)
         async function loadMenu() {
             const cookId = localStorage.getItem('activeCookId');
             const res = await fetch('/api/DailyMenus');
             const allMenus = await res.json();
             const menus = allMenus.filter(m => m.cookId == cookId);
-
             const list = document.getElementById('menuList');
+
             if (menus.length === 0) list.innerHTML = '<p class="text-muted mt-4">Menu is being prepared. Check back soon.</p>';
 
             menus.forEach(m => {
                 const imgTag = m.imageUrl ? `<img src="${m.imageUrl}" class="card-img-top" style="height: 180px; object-fit: cover;">` : `<div class="bg-secondary text-white text-center py-5">No Image</div>`;
-
                 list.innerHTML += `
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                                ${imgTag}
-                                <div class="card-body p-4 d-flex flex-column">
-                                    <h5 class="fw-bold text-dark">${m.dishName}</h5>
-                                    <p class="text-muted small mb-3">${m.description || 'Delicious home cooked meal.'}</p>
-                                    <h5 class="text-danger fw-bold mt-auto mb-3">₹${m.pricePerPortion}</h5>
-
-                                    <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3 border">
-                                        <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, -1)">-</button>
-                                        <span id="display-qty-${m.menuId}" class="fw-bold px-2">1</span>
-                                        <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, 1)">+</button>
-                                        <button onclick="addToCart(${m.menuId}, '${m.dishName}', ${m.pricePerPortion})" class="btn btn-dark btn-sm rounded-3 px-4 ms-2 fw-bold">ADD</button>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                                    ${imgTag}
+                                    <div class="card-body p-4 d-flex flex-column">
+                                        <h5 class="fw-bold text-dark">${m.dishName}</h5>
+                                        <p class="text-muted small mb-3">${m.description || 'Delicious home cooked meal.'}</p>
+                                        <h5 class="text-danger fw-bold mt-auto mb-3">₹${m.pricePerPortion}</h5>
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-2 rounded-3 border">
+                                            <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, -1)">-</button>
+                                            <span id="display-qty-${m.menuId}" class="fw-bold px-2">1</span>
+                                            <button class="btn btn-sm btn-white border fw-bold text-dark px-3" onclick="changeQty(${m.menuId}, 1)">+</button>
+                                            <button onclick="addToCart(${m.menuId}, '${m.dishName}', ${m.pricePerPortion})" class="btn btn-dark btn-sm rounded-3 px-4 ms-2 fw-bold">ADD</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>`;
+                            </div>`;
             });
         }
 
@@ -86,22 +230,18 @@
             const existing = cart.find(i => i.id === id);
             if (existing) existing.qty += qty;
             else cart.push({ id, name, price, qty });
-
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartUI();
-            const btn = event.target;
-            btn.innerText = "ADDED ✓";
-            btn.classList.replace("btn-dark", "btn-success");
-            setTimeout(() => { btn.innerText = "ADD"; btn.classList.replace("btn-success", "btn-dark"); }, 1500);
         }
 
         function updateCartUI() {
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('cartTotalDisplay').innerText = "₹" + total;
+            document.getElementById('cartTotalDisplay').innerText = "₹" + cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
         }
 
+        loadCookProfile();
         loadMenu();
+        loadReviews();
+        initMenu();
     </script>
-    <script src="/js/ootabot.js"></script>
 </body>
 </html>

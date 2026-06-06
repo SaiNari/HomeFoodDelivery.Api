@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Profile - OotaBox Kitchen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>if (!localStorage.getItem('userId')) window.location.href = '/index.html';</script>
+</head>
+<body class="bg-light pb-5">
+
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-dark text-decoration-none px-0 fw-bold" onclick="window.location.href='dashboard.html'">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Kitchen
+            </button>
+            <span class="navbar-brand fw-bold mx-auto">Public Profile Settings</span>
+            <div style="width: 80px;"></div> <!-- Spacer for centering -->
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <!-- Stats/Header Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white">
+            <div class="card-body p-4 text-center">
+                <div class="bg-white rounded-circle d-inline-flex justify-content-center align-items-center mb-3 shadow" style="width: 80px; height: 80px;">
+                    <i class="fa-solid fa-kitchen-set fs-1 text-danger"></i>
+                </div>
+                <h3 class="fw-bold mb-1" id="profileName">Loading...</h3>
+                <p class="text-white-50 small mb-3">Tech Park Home Chef</p>
+                <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1">
+                    <span class="text-warning me-2"><i class="fa-solid fa-star"></i></span>
+                    <span class="fw-bold" id="profileRating">--</span>
+                    <span class="text-white-50 ms-2 small">Average Rating</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Settings -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1 text-dark">Social Media Links</h5>
+                <p class="text-muted small mb-4">Connect your pages to build trust and show customers how you cook.</p>
+
+                <form id="profileForm">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small"><i class="fa-brands fa-youtube text-danger fs-5 me-2"></i> YouTube Video or Channel</label>
+                        <input type="url" id="youtubeUrl" class="form-control form-control-lg bg-light" placeholder="https://youtube.com/...">
+                        <div class="form-text small">Customers will see this video embedded on your menu.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small"><i class="fa-brands fa-instagram text-danger fs-5 me-2"></i> Instagram Profile</label>
+                        <input type="url" id="instagramUrl" class="form-control form-control-lg bg-light" placeholder="https://instagram.com/...">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small"><i class="fa-brands fa-facebook text-primary fs-5 me-2"></i> Facebook Page</label>
+                        <input type="url" id="facebookUrl" class="form-control form-control-lg bg-light" placeholder="https://facebook.com/...">
+                    </div>
+
+                    <hr class="my-4">
+                    <button type="button" onclick="saveProfileLinks()" class="btn btn-dark btn-lg w-100 fw-bold rounded-pill shadow-sm" id="saveBtn">Save Profile Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem('userId');
+
+        async function loadProfileData() {
+            try {
+                const response = await fetch(`/api/Users/${userId}`);
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('profileName').innerText = user.kitchenName || user.fullName;
+                    document.getElementById('profileRating').innerText = user.rating > 0 ? user.rating.toFixed(1) : "New";
+
+                    document.getElementById('youtubeUrl').value = user.youTubeUrl || '';
+                    document.getElementById('instagramUrl').value = user.instagramUrl || '';
+                    document.getElementById('facebookUrl').value = user.facebookUrl || '';
+                }
+            } catch (error) {
+                console.error("Failed to load profile", error);
+            }
+        }
+
+        async function saveProfileLinks() {
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const payload = {
+                youTubeUrl: document.getElementById('youtubeUrl').value,
+                instagramUrl: document.getElementById('instagramUrl').value,
+                facebookUrl: document.getElementById('facebookUrl').value
+            };
+
+            try {
+                const response = await fetch(`/api/Users/${userId}/profile`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    btn.classList.replace('btn-dark', 'btn-success');
+                    btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Profile Saved!';
+                    setTimeout(() => {
+                        btn.classList.replace('btn-success', 'btn-dark');
+                        btn.innerText = "Save Profile Settings";
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    alert("Failed to save profile. Please ensure API is running.");
+                    btn.innerText = "Save Profile Settings";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("Network error.");
+                btn.innerText = "Save Profile Settings";
+                btn.disabled = false;
+            }
+        }
+
+        // Initialize
+        loadProfileData();
+    </script>
+</body>
+</html>

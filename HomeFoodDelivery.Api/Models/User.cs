@@ -42,7 +42,13 @@ public class User
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
 
+    public string? YouTubeUrl { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? InstagramUrl { get; set; }
+
     public double Rating { get; set; } = 5.0;
+
+    public List<Review> Reviews { get; set; } = new List<Review>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

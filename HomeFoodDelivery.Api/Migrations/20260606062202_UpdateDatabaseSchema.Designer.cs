@@ -3,6 +3,7 @@ using System;
 using HomeFoodDelivery.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFoodDelivery.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260606062202_UpdateDatabaseSchema")]
+    partial class UpdateDatabaseSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -362,10 +365,6 @@ namespace HomeFoodDelivery.Api.Migrations
 
                     b.HasKey("ReviewId");
 
-                    b.HasIndex("CookId");
-
-                    b.HasIndex("CustomerId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Reviews");
@@ -534,25 +533,9 @@ namespace HomeFoodDelivery.Api.Migrations
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.Review", b =>
                 {
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Cook")
-                        .WithMany()
-                        .HasForeignKey("CookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("HomeFoodDelivery.Api.Models.User", null)
                         .WithMany("Reviews")
                         .HasForeignKey("UserId");
-
-                    b.Navigation("Cook");
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.User", b =>

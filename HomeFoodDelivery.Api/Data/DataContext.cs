@@ -15,6 +15,7 @@ public class DataContext : DbContext
     public DbSet<DailyMenu> DailyMenus => Set<DailyMenu>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<DeliveryZone> DeliveryZones { get; set; }
+    public DbSet<Review> Reviews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,5 +58,18 @@ public class DataContext : DbContext
             new DeliveryZone { ZoneId = 3, TechParkName = "RMZ Ecospace", ServicingNeighborhoods = "Bellandur, Marathahalli, Sarjapur Road" },
             new DeliveryZone { ZoneId = 4, TechParkName = "Electronic City Phase 1", ServicingNeighborhoods = "Electronic City, Bommanahalli" }
         );
+
+        // Configure Review entity relationships
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Cook)
+            .WithMany()
+            .HasForeignKey(r => r.CookId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Customer)
+            .WithMany()
+            .HasForeignKey(r => r.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
