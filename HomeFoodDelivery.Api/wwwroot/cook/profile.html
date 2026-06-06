@@ -29,10 +29,19 @@
                 </div>
                 <h3 class="fw-bold mb-1" id="profileName">Loading...</h3>
                 <p class="text-white-50 small mb-3">Tech Park Home Chef</p>
-                <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-1">
-                    <span class="text-warning me-2"><i class="fa-solid fa-star"></i></span>
-                    <span class="fw-bold" id="profileRating">--</span>
-                    <span class="text-white-50 ms-2 small">Average Rating</span>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-2">
+                        <span class="text-warning me-2"><i class="fa-solid fa-star"></i></span>
+                        <span class="fw-bold" id="profileRating">--</span>
+                    </div>
+
+                    <!-- Followers Count -->
+                    <div class="d-inline-flex align-items-center bg-primary bg-opacity-10 rounded-pill px-3 py-2 border border-primary">
+                        <span class="text-primary me-2"><i class="fa-solid fa-users"></i></span>
+                        <span class="fw-bold text-white" id="totalFollowers">0</span>
+                        <span class="text-white-50 ms-2 small">Followers</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -63,12 +72,55 @@
                     <hr class="my-4">
                     <button type="button" onclick="saveProfileLinks()" class="btn btn-dark btn-lg w-100 fw-bold rounded-pill shadow-sm" id="saveBtn">Save Profile Settings</button>
                 </form>
+
+                <!-- Insert this before the "My Loyal Customers" card -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4 mt-4 border-top border-primary border-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-comments text-primary me-2"></i> Recent Feedback</h5>
+                        <div id="reviewsContainer" class="d-flex flex-column gap-3" style="max-height: 300px; overflow-y: auto;">
+                            <p class="text-muted small text-center my-3">Loading feedback...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4 mt-4 border-top border-danger border-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-users text-danger me-2"></i> My Loyal Customers</h5>
+                            <span class="badge bg-danger rounded-pill" id="totalFollowersBadge">0</span>
+                        </div>
+                        <p class="text-muted small mb-4">These tech park employees get an alert every time you post a new menu!</p>
+
+                        <div id="followersList" class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                            <p class="text-muted small text-center my-3">Loading your fans...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const userId = localStorage.getItem('userId');
+
+        async function loadCookStats() {
+            const cookId = localStorage.getItem('userId');
+            try {
+                const response = await fetch(`/api/Users/cooks/${cookId}/stats`);
+                if (response.ok) {
+                    const stats = await response.json();
+
+                    // FIX: We are now targeting the exact IDs from your HTML!
+                    document.getElementById('totalFollowers').innerText = stats.followers;
+                    document.getElementById('totalFollowing').innerText = stats.following;
+                }
+            } catch (error) {
+                console.error("Error loading stats:", error);
+            }
+        }
+
+        // Call this immediately after your existing loadProfileData();
+        loadCookStats();
 
         async function loadProfileData() {
             try {
@@ -87,6 +139,7 @@
             }
         }
 
+        
         async function saveProfileLinks() {
             const btn = document.getElementById('saveBtn');
             btn.innerText = "Saving...";
@@ -125,7 +178,125 @@
             }
         }
 
-        // Initialize
+        async function fetchCookDashboardData() {
+            const cookId = localStorage.getItem('userId');
+
+            // Load Stats
+            try {
+                const statsRes = await fetch(`/api/Users/cooks/${cookId}/stats`);
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+
+                    // Safe check: Only update if the element actually exists in the DOM
+                    const el = document.getElementById('totalFollowers');
+                    if (el) el.innerText = stats.followers;
+                }
+            } catch (e) { console.error("Stats Error:", e); }
+
+            // Load Loyal Customers
+            try {
+                const loyalRes = await fetch(`/api/Users/cooks/${cookId}/loyal-customers`);
+                if (loyalRes.ok) {
+                    const customers = await loyalRes.json();
+                    const badge = document.getElementById('totalFollowersBadge');
+                    if (badge) badge.innerText = customers.length;
+
+                    const listContainer = document.getElementById('followersList');
+                    if (listContainer) {
+                        if (customers.length === 0) {
+                            listContainer.innerHTML = '<p class="text-muted small text-center my-3">No loyal customers yet.</p>';
+                        } else {
+                            listContainer.innerHTML = customers.map(c => `
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fa-solid fa-heart text-danger"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark text-capitalize">${c.customerName}</h6>
+                                <small class="text-muted" style="font-size: 0.7rem;">Favorited on ${c.followedDate}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                        }
+                    }
+                }
+            } catch (e) { console.error("Loyal Error:", e); }
+        }
+
+        fetchCookDashboardData();
+
+        async function loadLoyalCustomers() {
+            const cookId = localStorage.getItem('userId');
+            const container = document.getElementById('followersList');
+
+            try {
+                const response = await fetch(`/api/Users/cooks/${cookId}/loyal-customers`);
+                if (!response.ok) throw new Error("Failed to load");
+
+                const customers = await response.json();
+
+                // Update the counter in the header
+                document.querySelector('.badge.bg-danger').innerText = customers.length;
+
+                if (customers.length === 0) {
+                    container.innerHTML = '<p class="text-muted small text-center my-3">No loyal customers yet. Keep cooking!</p>';
+                    return;
+                }
+
+                container.innerHTML = customers.map(c => `
+            <div class="d-flex align-items-center p-2 border-bottom">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="fa-solid fa-user text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">${c.customerName}</h6>
+                    <small class="text-muted" style="font-size: 0.7rem;">Favorited on ${c.followedDate}</small>
+                </div>
+            </div>
+        `).join('');
+            } catch (e) {
+                container.innerHTML = '<p class="text-danger small text-center">Could not load customers.</p>';
+            }
+        }
+
+        async function loadCookReviews() {
+            const cookId = localStorage.getItem('userId');
+            const container = document.getElementById('reviewsContainer');
+
+            if (!cookId) return;
+
+            try {
+                const response = await fetch(`/api/Reviews/cook/${cookId}`);
+                if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+                const reviews = await response.json();
+
+                if (!reviews || reviews.length === 0) {
+                    container.innerHTML = '<p class="text-muted small text-center my-3">No reviews received yet.</p>';
+                    return;
+                }
+
+                // Render the list using the explicit 'customerName' key from the controller
+                container.innerHTML = reviews.map(r => `
+            <div class="p-3 border-bottom">
+                <div class="d-flex justify-content-between mb-1">
+                    <strong class="text-dark">${r.customerName}</strong>
+                    <span class="text-warning small">${'★'.repeat(r.rating || 0)}</span>
+                </div>
+                <p class="mb-0 text-secondary small">${r.comment || ''}</p>
+            </div>
+        `).join('');
+            } catch (e) {
+                console.error("Critical Render Error:", e);
+                container.innerHTML = '<p class="text-danger small text-center">Failed to load feedback.</p>';
+            }
+        }
+
+        // Ensure you call this on page load!
+        loadCookReviews();
+
+        // Call this on page load
+        loadLoyalCustomers();
         loadProfileData();
     </script>
 </body>

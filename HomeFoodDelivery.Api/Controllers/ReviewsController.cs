@@ -17,13 +17,26 @@ namespace HomeFoodDelivery.Api.Controllers
         }
 
         [HttpGet("cook/{cookId}")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviewsForCook(int cookId)
+        public async Task<IActionResult> GetReviewsForCook(int cookId)
         {
-            return await _context.Reviews
-                .Include(r => r.Customer)
+            // We use a flat query that doesn't rely on complex navigation Include() chains
+            var data = await _context.Reviews
                 .Where(r => r.CookId == cookId)
                 .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new {
+                    reviewId = r.ReviewId,
+                    rating = r.Rating,
+                    comment = r.Comment,
+                    createdAt = r.CreatedAt,
+                    // Manually join to the user table to get the name
+                    customerName = _context.Users
+                        .Where(u => u.UserId == r.CustomerId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefault() ?? "Anonymous"
+                })
                 .ToListAsync();
+
+            return Ok(data);
         }
 
         [HttpPost]

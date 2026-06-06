@@ -217,6 +217,32 @@
             .catch(function (err) {
                 console.error("SignalR Connection Error: ", err.toString());
             });
+
+        connection.on("NewMenuAlert", function (alertData) {
+            console.log("New Menu Alert Received!", alertData);
+
+            // Simple UI Toast Notification
+            const toastContainer = document.getElementById('toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success shadow-sm fixed-top m-3';
+            toast.style.zIndex = '10000';
+            toast.innerHTML = `
+        <strong><i class="fa-solid fa-bell"></i> New Menu!</strong><br>
+        ${alertData.message}
+        <button class="btn btn-sm btn-outline-success ms-3" onclick="window.location.href='menu.html'">View</button>
+    `;
+            document.body.appendChild(toast);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => toast.remove(), 5000);
+        });
+
+        function createToastContainer() {
+            const div = document.createElement('div');
+            div.id = 'toast-container';
+            document.body.appendChild(div);
+            return div;
+        }
     </script>
     <script src="/js/ootabot.js"></script>
 </body>

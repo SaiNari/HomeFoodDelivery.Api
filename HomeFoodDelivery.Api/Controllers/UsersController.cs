@@ -94,6 +94,110 @@ namespace HomeFoodDelivery.Api.Controllers
             return Ok(new { message = "Profile updated successfully!" });
         }
 
+        [HttpGet("cooks/{cookId}/profile")]
+        public async Task<IActionResult> GetCookProfileForCustomer(int cookId, [FromQuery] int currentCustomerId)
+        {
+            var cook = await _context.Users.Include(u => u.Reviews).ThenInclude(r => r.Customer)
+                .FirstOrDefaultAsync(u => u.UserId == cookId && u.UserRole == "Cook");
+            if (cook == null) return NotFound("Cook not found.");
+
+            var followerCount = await _context.CookFollowers.CountAsync(cf => cf.CookId == cookId);
+            var isFollowing = await _context.CookFollowers.AnyAsync(cf => cf.CookId == cookId && cf.CustomerId == currentCustomerId);
+
+            // Check if favorited!
+            var isFavorite = await _context.CookFavorites.AnyAsync(cf => cf.CookId == cookId && cf.CustomerId == currentCustomerId);
+
+            var today = DateTime.UtcNow.Date;
+            var activeMenu = await _context.DailyMenus.Where(m => m.CookId == cookId && m.MenuDate >= today).ToListAsync();
+
+            return Ok(new
+            {
+                KitchenName = cook.KitchenName ?? (cook.FullName + "'s Kitchen"),
+                KitchenAddress = cook.KitchenAddress ?? cook.AddressText,
+                Rating = cook.Rating,
+                Followers = followerCount,
+                IsFollowing = isFollowing,
+                IsFavorite = isFavorite, // Send this to the frontend
+                Socials = new { Instagram = cook.InstagramUrl, YouTube = cook.YouTubeUrl, Facebook = cook.FacebookUrl },
+                Menu = activeMenu,
+                Reviews = cook.Reviews.OrderByDescending(r => r.CreatedAt).Select(r => new {
+                    CustomerName = r.Customer?.FullName ?? "Anonymous",
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    Date = r.CreatedAt.ToString("MMM dd, yyyy")
+                })
+            });
+        }
+
+        [HttpPost("cooks/{cookId}/toggle-follow")]
+        public async Task<IActionResult> ToggleFollow(int cookId, [FromBody] int customerId)
+        {
+            var existing = await _context.CookFollowers.FirstOrDefaultAsync(cf => cf.CookId == cookId && cf.CustomerId == customerId);
+            if (existing != null)
+            {
+                _context.CookFollowers.Remove(existing);
+                await _context.SaveChangesAsync();
+                return Ok(new { isFollowing = false });
+            }
+            _context.CookFollowers.Add(new CookFollower { CookId = cookId, CustomerId = customerId });
+            await _context.SaveChangesAsync();
+            return Ok(new { isFollowing = true });
+        }
+
+        [HttpGet("cooks/{cookId}/followers")]
+        public async Task<IActionResult> GetCookFollowers(int cookId)
+        {
+            var followers = await _context.CookFollowers
+                .Include(cf => cf.Customer)
+                .Where(cf => cf.CookId == cookId)
+                .OrderByDescending(cf => cf.CreatedAt)
+                .Select(cf => new {
+                    CustomerName = cf.Customer.FullName,
+                    FollowedOn = cf.CreatedAt.ToString("MMM dd, yyyy")
+                })
+                .ToListAsync();
+
+            return Ok(followers);
+        }
+
+        [HttpPost("cooks/{cookId}/toggle-favorite")]
+        public async Task<IActionResult> ToggleFavorite(int cookId, [FromBody] int customerId)
+        {
+            var existing = await _context.CookFavorites.FirstOrDefaultAsync(cf => cf.CookId == cookId && cf.CustomerId == customerId);
+            if (existing != null)
+            {
+                _context.CookFavorites.Remove(existing);
+                await _context.SaveChangesAsync();
+                return Ok(new { isFavorite = false });
+            }
+            _context.CookFavorites.Add(new CookFavorite { CookId = cookId, CustomerId = customerId });
+            await _context.SaveChangesAsync();
+            return Ok(new { isFavorite = true });
+        }
+
+        [HttpGet("cooks/{userId}/loyal-customers")]
+        public async Task<IActionResult> GetLoyalCustomers(int userId)
+        {
+            // Fetches from CookFavorites now!
+            var customers = await _context.CookFavorites
+                .Include(cf => cf.Customer)
+                .Where(cf => cf.CookId == userId)
+                .OrderByDescending(cf => cf.CreatedAt)
+                .Select(cf => new {
+                    CustomerName = cf.Customer.FullName,
+                    FollowedDate = cf.CreatedAt.ToString("MMM dd, yyyy")
+                }).ToListAsync();
+            return Ok(customers);
+        }
+
+        [HttpGet("cooks/{userId}/stats")]
+        public async Task<IActionResult> GetCookStats(int userId)
+        {
+            var followers = await _context.CookFollowers.CountAsync(cf => cf.CookId == userId);
+            var following = await _context.CookFollowers.CountAsync(cf => cf.CustomerId == userId);
+            return Ok(new { followers, following });
+        }
+
         public class UserProfileUpdateDto
         {
             public string? FacebookUrl { get; set; }

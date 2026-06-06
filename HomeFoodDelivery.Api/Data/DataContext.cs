@@ -16,6 +16,8 @@ public class DataContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<DeliveryZone> DeliveryZones { get; set; }
     public DbSet<Review> Reviews { get; set; }
+    public DbSet<CookFollower> CookFollowers { get; set; }
+    public DbSet<CookFavorite> CookFavorites { get; set; } // Add this line
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,7 +39,17 @@ public class DataContext : DbContext
         new DailyMenu { MenuId = 106, CookId = 3, ShiftId = 3, MenuDate = seedDate, DishName = "Shahi Dry Fruit Halwa", Description = "Premium rich halwa loaded with roasted dry fruits.", AvailablePortions = 12, PricePerPortion = 120.00m, CreatedAt = seedDate },
         new DailyMenu { MenuId = 107, CookId = 1, ShiftId = 3, MenuDate = seedDate, DishName = "Fruit N Nut Fantasy Ice Cream", Description = "Creamy dessert overloaded with real fruits and nuts.", AvailablePortions = 15, PricePerPortion = 90.00m, CreatedAt = seedDate }
     );
+        modelBuilder.Entity<CookFollower>()
+    .HasOne(cf => cf.Customer)
+    .WithMany()
+    .HasForeignKey(cf => cf.CustomerId)
+    .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<CookFollower>()
+            .HasOne(cf => cf.Cook)
+            .WithMany()
+            .HasForeignKey(cf => cf.CookId)
+            .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<User>()
             .HasIndex(u => u.PhoneNumber)
             .IsUnique();
@@ -45,6 +57,18 @@ public class DataContext : DbContext
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.IdempotencyKey)
             .IsUnique();
+
+        modelBuilder.Entity<CookFavorite>()
+    .HasOne(cf => cf.Customer)
+    .WithMany()
+    .HasForeignKey(cf => cf.CustomerId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CookFavorite>()
+            .HasOne(cf => cf.Cook)
+            .WithMany()
+            .HasForeignKey(cf => cf.CookId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<MealShift>().HasData(
             new MealShift { ShiftId = 1, ShiftName = "Breakfast", EntryOpenTime = new TimeSpan(6, 0, 0), CutoffTime = new TimeSpan(7, 30, 0), DeliveryTime = new TimeSpan(8, 15, 0) },
@@ -72,4 +96,5 @@ public class DataContext : DbContext
             .HasForeignKey(r => r.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
     }
+
 }
