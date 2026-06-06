@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Checkout - OotaBox</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>if (!localStorage.getItem('userId')) window.location.href = '/index.html';</script>
 </head>
 <body class="bg-light pb-5">
@@ -23,60 +25,203 @@
     </nav>
 
     <div class="container" style="max-width: 600px;">
-        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
-            <h4 class="fw-bold mb-4 border-bottom pb-3">Order Summary</h4>
-            <div id="cartItemsList"></div>
 
-            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-4 border-bottom pb-3">Order Summary</h5>
+            <div id="cartItemsList"></div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                 <span class="fs-5 text-muted">To Pay</span>
                 <span class="fs-3 fw-bold text-danger" id="finalTotalDisplay">₹0</span>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
-            <h5 class="fw-bold mb-3">Pay on Delivery</h5>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="payment" id="upi" checked>
-                <label class="form-check-label" for="upi">UPI / Cash on Delivery</label>
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4 text-dark">Payment Options</h5>
+
+                <div class="form-check mb-3 border rounded p-3 d-flex align-items-center justify-content-between" onclick="document.getElementById('payWallet').checked = true;" style="cursor: pointer;">
+                    <div class="d-flex align-items-center">
+                        <input class="form-check-input ms-0 me-3 mt-0" type="radio" name="paymentMethod" id="payWallet" value="Wallet">
+                        <label class="form-check-label fw-bold d-flex align-items-center" for="payWallet" style="cursor: pointer;">
+                            <i class="fa-solid fa-wallet text-danger fs-5 me-2"></i> OotaBox Wallet
+                        </label>
+                    </div>
+                    <span id="checkoutWalletBalance" class="fw-bold text-muted small">Loading...</span>
+                </div>
+
+                <div class="border rounded p-3 mb-3">
+                    <div class="d-flex align-items-center justify-content-between w-100" data-bs-toggle="collapse" href="#upiOptions" role="button" aria-expanded="false" onclick="document.getElementById('payUPI').checked = true;" style="cursor: pointer;">
+
+                        <div class="form-check mb-0 d-flex align-items-center p-0 m-0">
+                            <input class="form-check-input mt-0 me-3" type="radio" name="paymentMethod" id="payUPI" value="UPI" style="margin-left: 0;">
+                            <label class="form-check-label fw-bold d-flex align-items-center" for="payUPI" style="cursor: pointer;">
+                                <i class="fa-solid fa-qrcode text-primary fs-5 me-2"></i> UPI
+                            </label>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-muted"></i>
+                    </div>
+
+                    <div class="collapse mt-3" id="upiOptions">
+                        <div class="pt-3 border-top d-flex flex-column gap-3 ms-4">
+
+                            <div class="form-check d-flex align-items-center p-0 m-0" onclick="document.getElementById('gpay').checked = true;">
+                                <input class="form-check-input mt-0 me-2" type="radio" name="upiApp" id="gpay" value="GPay" checked style="margin-left: 0;">
+                                <label class="form-check-label fw-bold small text-dark mt-1 d-flex align-items-center" for="gpay" style="cursor: pointer;">
+                                    <i class="fa-brands fa-google-pay fs-3 me-2" style="color: #4285F4;"></i> Google Pay
+                                </label>
+                            </div>
+
+                            <div class="form-check d-flex align-items-center p-0 m-0" onclick="document.getElementById('phonepe').checked = true;">
+                                <input class="form-check-input mt-0 me-2" type="radio" name="upiApp" id="phonepe" value="PhonePe" style="margin-left: 0;">
+                                <label class="form-check-label fw-bold small text-dark mt-1 d-flex align-items-center" for="phonepe" style="cursor: pointer;">
+                                    <i class="fa-solid fa-mobile-screen fs-5 me-2" style="color: #5f259f;"></i> PhonePe
+                                </label>
+                            </div>
+
+                            <div class="form-check d-flex align-items-center p-0 m-0" onclick="document.getElementById('paytm').checked = true;">
+                                <input class="form-check-input mt-0 me-2" type="radio" name="upiApp" id="paytm" value="Paytm" style="margin-left: 0;">
+                                <label class="form-check-label fw-bold small text-dark mt-1 d-flex align-items-center" for="paytm" style="cursor: pointer;">
+                                    <i class="fa-solid fa-wallet fs-5 me-2" style="color: #00baf2;"></i> Paytm
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check mb-3 border rounded p-3 d-flex align-items-center" onclick="document.getElementById('payCard').checked = true;" style="cursor: pointer;">
+                    <input class="form-check-input ms-0 me-3 mt-0" type="radio" name="paymentMethod" id="payCard" value="Card">
+                    <label class="form-check-label fw-bold d-flex align-items-center w-100" for="payCard" style="cursor: pointer;">
+                        <i class="fa-regular fa-credit-card text-warning fs-5 me-2"></i> Credit / Debit Card
+                    </label>
+                </div>
+
+                <div class="form-check border rounded p-3 d-flex align-items-center" onclick="document.getElementById('payCOD').checked = true;" style="cursor: pointer;">
+                    <input class="form-check-input ms-0 me-3 mt-0" type="radio" name="paymentMethod" id="payCOD" value="COD" checked>
+                    <label class="form-check-label fw-bold w-100" for="payCOD" style="cursor: pointer;">
+                        <i class="fa-solid fa-money-bill-wave text-success fs-5 me-2"></i> Cash on Delivery
+                    </label>
+                </div>
             </div>
         </div>
 
         <button id="payBtn" class="btn btn-dark btn-lg w-100 py-3 fw-bold rounded-pill shadow" onclick="placeOrder()">Confirm Order & Pay</button>
     </div>
 
+
     <script>
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
         const container = document.getElementById('cartItemsList');
         let total = 0;
 
-        if (cart.length === 0) {
-            container.innerHTML = '<p class="text-muted text-center">Your cart is empty.</p>';
-            document.getElementById('payBtn').disabled = true;
-        } else {
-            cart.forEach(item => {
+        renderCart();
+
+        function renderCart() {
+            container.innerHTML = '';
+            total = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-basket-shopping fs-1 text-muted mb-3"></i>
+                        <p class="text-muted fw-bold">Your cart is empty.</p>
+                    </div>`;
+                document.getElementById('payBtn').disabled = true;
+                document.getElementById('finalTotalDisplay').innerText = "₹0";
+                return;
+            }
+
+            document.getElementById('payBtn').disabled = false;
+
+            cart.forEach((item, index) => {
                 const itemTotal = item.price * item.qty;
                 total += itemTotal;
+
                 container.innerHTML += `
-                    <div class="d-flex justify-content-between mb-3 align-items-center">
-                        <div>
-                            <div class="fw-bold text-dark">${item.name}</div>
-                            <div class="text-muted small">₹${item.price} x ${item.qty}</div>
+                    <div class="mb-3 border-bottom pb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="pe-2">
+                                <h6 class="fw-bold text-dark mb-0">${item.name}</h6>
+                                <small class="text-muted">₹${item.price} per portion</small>
+                            </div>
+                            <div class="fw-bold text-dark fs-6">₹${itemTotal}</div>
                         </div>
-                        <div class="fw-bold">₹${itemTotal}</div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" onclick="removeItem(${index})">
+                                <i class="fa-solid fa-trash-can me-1"></i><small class="fw-bold">Remove</small>
+                            </button>
+
+                            <!-- Modern Pill-shaped Qty Controls -->
+                            <div class="d-flex align-items-center bg-white border border-secondary-subtle rounded-3 shadow-sm">
+                                <button class="btn btn-sm text-secondary px-3 py-1 border-0" onclick="updateQty(${index}, -1)">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <span class="fw-bold px-2 text-dark small" style="min-width: 24px; text-align: center;">
+                                    ${item.qty}
+                                </span>
+                                <button class="btn btn-sm text-success px-3 py-1 border-0" onclick="updateQty(${index}, 1)">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>`;
             });
             document.getElementById('finalTotalDisplay').innerText = "₹" + total;
         }
 
+        async function loadWalletBalanceForCheckout() {
+            try {
+                const userId = localStorage.getItem('userId');
+                const response = await fetch(`/api/Wallets/${userId}`);
+                if (response.ok) {
+                    const wallet = await response.json();
+                    const balanceDisplay = document.getElementById('checkoutWalletBalance');
+
+                    if (wallet.balance < total) {
+                        balanceDisplay.innerHTML = `₹${wallet.balance.toFixed(2)} <span class="text-danger ms-1">(Insufficient)</span>`;
+                    } else {
+                        balanceDisplay.innerHTML = `<span class="text-success">₹${wallet.balance.toFixed(2)}</span>`;
+                    }
+                }
+            } catch (error) {
+                console.error("Could not fetch wallet balance:", error);
+                document.getElementById('checkoutWalletBalance').innerText = "";
+            }
+        }
+
+        // Call this immediately after renderCart();
+        renderCart();
+        loadWalletBalanceForCheckout();
+
+        function updateQty(index, change) {
+            cart[index].qty += change;
+            if (cart[index].qty <= 0) cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
         async function placeOrder() {
+            let selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
             const btn = document.getElementById('payBtn');
             btn.innerText = "Processing...";
             btn.disabled = true;
 
-            try {                
+            if (selectedPayment === 'UPI') {
+                const upiApp = document.querySelector('input[name="upiApp"]:checked').value;
+                selectedPayment = `UPI (${upiApp})`;
+            }
+
+            try {
                 const checkoutPayload = {
                     customerId: parseInt(localStorage.getItem('userId')),
-                    paymentMethod: document.getElementById('upi').checked ? "UPI/COD" : "Online",
+                    paymentMethod: selectedPayment,
+                    totalAmount: total,
                     items: cart.map(item => ({
                         menuId: item.id,
                         quantity: item.qty,
@@ -93,15 +238,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    localStorage.removeItem('cart'); 
+                    localStorage.removeItem('cart');
                     alert("Payment Successful! " + result.message);
-                    window.location.href = 'dashboard.html'; 
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert("Checkout Failed: " + result.message);
                     btn.innerText = "Confirm Order & Pay";
                     btn.disabled = false;
                 }
-
             } catch (error) {
                 console.error(error);
                 alert("Network error. Please try again.");
@@ -110,5 +254,8 @@
             }
         }
     </script>
+    <script src="/js/ootabot.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </body>
 </html>

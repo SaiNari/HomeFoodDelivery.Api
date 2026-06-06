@@ -8,7 +8,8 @@ public class DataContext : DbContext
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
     }
-
+    public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<WalletTransaction> WalletTransactions { get; set; }
     public DbSet<User> Users => Set<User>();
     public DbSet<MealShift> MealShifts => Set<MealShift>();
     public DbSet<DailyMenu> DailyMenus => Set<DailyMenu>();
@@ -18,6 +19,23 @@ public class DataContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        DateTime seedDate = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc);
+
+        string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        string timestamp = DateTime.UtcNow.ToString("O");
+
+        modelBuilder.Entity<DailyMenu>().HasData(
+        new DailyMenu { MenuId = 101, CookId = 1, ShiftId = 1, MenuDate = seedDate, DishName = "Nellore Karam Dosa", Description = "Spicy and crispy dosa with authentic Nellore karam.", AvailablePortions = 30, PricePerPortion = 70.00m, CreatedAt = seedDate },
+        new DailyMenu { MenuId = 102, CookId = 3, ShiftId = 1, MenuDate = seedDate, DishName = "Idli & Ginger Tea", Description = "Soft steaming idlis served with a cup of fresh ginger tea.", AvailablePortions = 25, PricePerPortion = 50.00m, CreatedAt = seedDate },
+
+        new DailyMenu { MenuId = 103, CookId = 1, ShiftId = 2, MenuDate = seedDate, DishName = "Nati Style Donne Chicken Biryani", Description = "Classic local nati style donne chicken biryani.", AvailablePortions = 20, PricePerPortion = 180.00m, CreatedAt = seedDate },
+        new DailyMenu { MenuId = 104, CookId = 3, ShiftId = 2, MenuDate = seedDate, DishName = "Hyderabadi Chicken Dum Biryani", Description = "Slow-cooked authentic dum biryani with rich spices.", AvailablePortions = 15, PricePerPortion = 240.00m, CreatedAt = seedDate },
+
+        new DailyMenu { MenuId = 105, CookId = 1, ShiftId = 3, MenuDate = seedDate, DishName = "Nellore Mutton Biryani", Description = "Rich, flavorful, and tender mutton biryani.", AvailablePortions = 10, PricePerPortion = 320.00m, CreatedAt = seedDate },
+
+        new DailyMenu { MenuId = 106, CookId = 3, ShiftId = 3, MenuDate = seedDate, DishName = "Shahi Dry Fruit Halwa", Description = "Premium rich halwa loaded with roasted dry fruits.", AvailablePortions = 12, PricePerPortion = 120.00m, CreatedAt = seedDate },
+        new DailyMenu { MenuId = 107, CookId = 1, ShiftId = 3, MenuDate = seedDate, DishName = "Fruit N Nut Fantasy Ice Cream", Description = "Creamy dessert overloaded with real fruits and nuts.", AvailablePortions = 15, PricePerPortion = 90.00m, CreatedAt = seedDate }
+    );
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.PhoneNumber)

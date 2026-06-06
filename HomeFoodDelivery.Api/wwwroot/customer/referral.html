@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Refer & Earn - OotaBox</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script>if (!localStorage.getItem('userId')) window.location.href = '/index.html';</script>
+</head>
+<body class="bg-light pb-5">
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-dark text-decoration-none px-0" onclick="window.location.href='kitchen-list.html'">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </button>
+            <span class="navbar-brand fw-bold mx-auto">Refer & Earn</span>
+            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="localStorage.clear(); window.location.href='/index.html'">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 500px;">
+
+        <div class="text-center mb-4 mt-3">
+            <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                <i class="fa-solid fa-gift fs-1"></i>
+            </div>
+            <h3 class="fw-bold text-dark">Give ₹50, Get ₹50</h3>
+            <p class="text-muted">Invite your colleagues to OotaBox. They get ₹50 on their first login, and you get ₹50 in your wallet when they sign up!</p>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4 text-center">
+                <p class="text-muted fw-bold small mb-2">YOUR UNIQUE REFERRAL CODE</p>
+
+                <div class="bg-light border border-2 border-dashed border-danger rounded-3 p-3 mb-3 position-relative">
+                    <h2 class="fw-bold text-danger mb-0 tracking-widest" id="myReferralCode" style="letter-spacing: 2px;">LOADING...</h2>
+                </div>
+
+                <button class="btn btn-dark btn-lg w-100 rounded-pill fw-bold" onclick="copyCode()" id="copyBtn">
+                    <i class="fa-regular fa-copy me-2"></i> Copy Code
+                </button>
+
+                <div class="mt-4 pt-4 border-top">
+                    <p class="text-muted fw-bold small mb-3">SHARE VIA</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button class="btn btn-light rounded-circle shadow-sm d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;" onclick="shareTo('whatsapp')">
+                            <i class="fa-brands fa-whatsapp fs-3" style="color: #25D366;"></i>
+                        </button>
+                        <button class="btn btn-light rounded-circle shadow-sm d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;" onclick="shareTo('linkedin')">
+                            <i class="fa-brands fa-linkedin-in fs-4" style="color: #0077b5;"></i>
+                        </button>
+                        <button class="btn btn-light rounded-circle shadow-sm d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;" onclick="shareTo('twitter')">
+                            <i class="fa-brands fa-x-twitter fs-4" style="color: #000000;"></i>
+                        </button>
+                        <button class="btn btn-light rounded-circle shadow-sm d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;" onclick="shareTo('facebook')">
+                            <i class="fa-brands fa-facebook-f fs-4" style="color: #1877F2;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">How it works</h6>
+                <div class="d-flex align-items-start mb-3">
+                    <div class="bg-light text-dark rounded-circle px-2 py-1 me-3 fw-bold small">1</div>
+                    <p class="mb-0 text-muted small">Share your code with your office teammates.</p>
+                </div>
+                <div class="d-flex align-items-start mb-3">
+                    <div class="bg-light text-dark rounded-circle px-2 py-1 me-3 fw-bold small">2</div>
+                    <p class="mb-0 text-muted small">They use it during account registration.</p>
+                </div>
+                <div class="d-flex align-items-start">
+                    <div class="bg-light text-dark rounded-circle px-2 py-1 me-3 fw-bold small">3</div>
+                    <p class="mb-0 text-muted small">Both of your OotaBox Wallets are instantly credited with ₹50!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dynamically generate the code based on their ID
+        const userId = localStorage.getItem('userId');
+        const refCode = `OOTA-EMP-${userId}`;
+        document.getElementById('myReferralCode').innerText = refCode;
+
+        function copyCode() {
+            navigator.clipboard.writeText(refCode).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Copied!';
+                btn.classList.replace('btn-dark', 'btn-success');
+
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fa-regular fa-copy me-2"></i> Copy Code';
+                    btn.classList.replace('btn-success', 'btn-dark');
+                }, 2000);
+            });
+        }
+    </script>
+    <script src="/js/ootabot.js"></script>
+</body>
+</html>

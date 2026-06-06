@@ -5,6 +5,7 @@ public class CheckoutRequest
     public int CustomerId { get; set; }
     public string PaymentMethod { get; set; } = "UPI/COD";
     public List<CartItemDto> Items { get; set; } = new List<CartItemDto>();
+    public decimal TotalAmount { get; set; }
 }
 
 public class CartItemDto

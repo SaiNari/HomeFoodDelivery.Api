@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using HomeFoodDelivery.Api.Data;
-using HomeFoodDelivery.Api.Models;
+﻿using HomeFoodDelivery.Api.Data;
 using HomeFoodDelivery.Api.DTOs;
+using HomeFoodDelivery.Api.Models;
+using HomeFoodDelivery.Api.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeFoodDelivery.Api.Controllers
 {
@@ -11,10 +12,12 @@ namespace HomeFoodDelivery.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IWalletService _walletService;
 
-        public AuthController(DataContext context)
+        public AuthController(DataContext context, IWalletService walletService)
         {
             _context = context;
+            _walletService = walletService;
         }
 
         [HttpPost("register")]
@@ -41,6 +44,17 @@ namespace HomeFoodDelivery.Api.Controllers
 
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(request.ReferralCode) && request.ReferralCode.StartsWith("OOTA-EMP-"))
+            {
+                var referrerIdString = request.ReferralCode.Replace("OOTA-EMP-", "");
+                if (int.TryParse(referrerIdString, out int referrerId))
+                {
+                    await _walletService.CreditBalanceAsync(referrerId, 50.00m, $"Referral Bonus for inviting {newUser.FullName}");
+
+                    await _walletService.CreditBalanceAsync(newUser.UserId, 50.00m, "Welcome Bonus (Referred by a friend)");
+                }
+            }
 
             return Ok(new { message = "Registration successful!", userId = newUser.UserId });
         }
