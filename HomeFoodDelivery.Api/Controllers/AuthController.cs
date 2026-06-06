@@ -27,6 +27,13 @@ namespace HomeFoodDelivery.Api.Controllers
             if (!string.IsNullOrEmpty(request.GoogleId) && await _context.Users.AnyAsync(u => u.GoogleId == request.GoogleId))
                 return BadRequest(new { message = "This Google account is already linked to a profile." });
 
+            // Cooks must supply a kitchen name and FSSAI license.
+            if (request.UserRole == "Cook" &&
+                (string.IsNullOrWhiteSpace(request.KitchenName) || string.IsNullOrWhiteSpace(request.FssaiLicense)))
+            {
+                return BadRequest(new { message = "Kitchen name and FSSAI license are required for cooks." });
+            }
+
             var newUser = new User
             {
                 FullName = request.FullName,
@@ -36,6 +43,12 @@ namespace HomeFoodDelivery.Api.Controllers
                 ZoneId = request.ZoneId,
                 Pincode = request.Pincode,
                 GoogleId = request.GoogleId,
+                KitchenName = request.KitchenName,
+                KitchenAddress = request.KitchenAddress,
+                FssaiLicense = request.FssaiLicense,
+                FssaiExpiry = request.FssaiExpiry,
+                Latitude = request.Latitude,
+                Longitude = request.Longitude,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -72,9 +85,11 @@ namespace HomeFoodDelivery.Api.Controllers
                 message = "Login successful",
                 userId = user.UserId,
                 fullName = user.FullName,
-                role = user.UserRole,  
+                role = user.UserRole,
                 zoneId = user.ZoneId,
-                zoneName = user.DeliveryZone?.TechParkName
+                zoneName = user.DeliveryZone?.TechParkName,
+                kitchenName = user.KitchenName,
+                addressText = user.AddressText
             });
         }
     }

@@ -39,6 +39,12 @@ public class User
     [MaxLength(250)]
     public string? KitchenAddress { get; set; }
 
+    // FSSAI food-business license details (required for cooks).
+    [MaxLength(20)]
+    public string? FssaiLicense { get; set; }
+
+    public DateTime? FssaiExpiry { get; set; }
+
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
 

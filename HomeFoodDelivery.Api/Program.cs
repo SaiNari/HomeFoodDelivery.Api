@@ -26,6 +26,13 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Apply any pending EF Core migrations on startup (dev convenience).
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    db.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

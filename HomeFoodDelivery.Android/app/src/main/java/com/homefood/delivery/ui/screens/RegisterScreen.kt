@@ -162,8 +162,9 @@ fun RegisterScreen(session: SessionManager, navController: NavController) {
                     vm.register(req) { userId ->
                         session.userId = userId
                         session.fullName = name.trim()
+                        session.role = "Customer"
                         session.zoneId = selectedZone?.zoneId ?: 0
-                        navController.navigate(Routes.KITCHENS) {
+                        navController.navigate(Routes.CUSTOMER_HOME) {
                             popUpTo(Routes.LOGIN) { inclusive = true }
                         }
                     }

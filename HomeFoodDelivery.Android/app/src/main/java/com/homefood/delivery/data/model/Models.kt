@@ -19,7 +19,9 @@ data class LoginResponse(
     val fullName: String? = null,
     val role: String? = null,
     val zoneId: Int? = null,
-    val zoneName: String? = null
+    val zoneName: String? = null,
+    val kitchenName: String? = null,
+    val addressText: String? = null
 )
 
 data class RegisterRequest(
@@ -29,12 +31,30 @@ data class RegisterRequest(
     val addressText: String = "",
     val zoneId: Int,
     val pincode: String? = null,
-    val googleId: String? = null
+    val googleId: String? = null,
+    // Cook-only fields:
+    val kitchenName: String? = null,
+    val kitchenAddress: String? = null,
+    val fssaiLicense: String? = null,
+    val fssaiExpiry: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 data class RegisterResponse(
     val message: String? = null,
     val userId: Int = 0
+)
+
+data class UpdateProfileRequest(
+    val fullName: String? = null,
+    val addressText: String? = null,
+    val pincode: String? = null,
+    val zoneId: Int? = null,
+    val kitchenName: String? = null,
+    val kitchenAddress: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 // ---------- Tech parks (delivery zones) ----------
@@ -74,6 +94,20 @@ data class MenuItem(
     val pricePerPortion: Double = 0.0
 )
 
+/** Body for a cook creating a new dish (POST /api/DailyMenus). */
+data class NewMenuRequest(
+    val cookId: Int,
+    val shiftId: Int,
+    val menuDate: String,
+    val dishName: String,
+    val description: String? = null,
+    val imageUrl: String? = null,
+    val isVegetarian: Boolean = true,
+    val preparationTimeMinutes: Int = 30,
+    val availablePortions: Int,
+    val pricePerPortion: Double
+)
+
 // ---------- Orders / checkout ----------
 
 data class CartItemDto(
@@ -99,3 +133,20 @@ data class Order(
     val orderTime: String = "",
     val dailyMenu: MenuItem? = null
 )
+
+/** Meal shifts seeded in the backend (ShiftId -> name). */
+object MealShifts {
+    val all = listOf(1 to "Breakfast", 2 to "Lunch", 3 to "Dinner")
+    fun name(id: Int): String = all.firstOrNull { it.first == id }?.second ?: "Meal"
+}
+
+/** Canonical order lifecycle, used for the status timeline + cook actions. */
+object OrderStatus {
+    val flow = listOf("Pending", "Accepted", "Preparing", "Out for delivery", "Delivered")
+
+    /** The next status a cook can advance an order to, or null if terminal/cancelled. */
+    fun next(current: String): String? {
+        val i = flow.indexOf(current)
+        return if (i in 0 until flow.lastIndex) flow[i + 1] else null
+    }
+}

@@ -33,6 +33,31 @@ namespace HomeFoodDelivery.Api.Controllers
             return Ok(menus);
         }
 
+        // All menus owned by a cook (for the cook's own management view).
+        [HttpGet("mine/{cookId}")]
+        public async Task<ActionResult<IEnumerable<DailyMenu>>> GetMyMenus(int cookId)
+        {
+            var menus = await _context.DailyMenus
+                .Where(m => m.CookId == cookId)
+                .OrderByDescending(m => m.MenuDate)
+                .ThenBy(m => m.ShiftId)
+                .ToListAsync();
+
+            return Ok(menus);
+        }
+
+        // DELETE: api/DailyMenus/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMenu(int id)
+        {
+            var menu = await _context.DailyMenus.FindAsync(id);
+            if (menu == null) return NotFound();
+
+            _context.DailyMenus.Remove(menu);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Dish removed." });
+        }
+
         [HttpPost]
         public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu menu)
         {

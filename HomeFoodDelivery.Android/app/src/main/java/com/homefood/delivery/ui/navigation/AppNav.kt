@@ -10,24 +10,35 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.homefood.delivery.data.session.SessionManager
 import com.homefood.delivery.ui.screens.CartScreen
-import com.homefood.delivery.ui.screens.KitchensScreen
+import com.homefood.delivery.ui.screens.CookRegisterScreen
 import com.homefood.delivery.ui.screens.LoginScreen
 import com.homefood.delivery.ui.screens.MenuScreen
-import com.homefood.delivery.ui.screens.OrdersScreen
+import com.homefood.delivery.ui.screens.PaymentScreen
 import com.homefood.delivery.ui.screens.RegisterScreen
 import com.homefood.delivery.ui.screens.TechParkScreen
+import com.homefood.delivery.ui.screens.cook.CookHome
+import com.homefood.delivery.ui.screens.customer.CustomerHome
 
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
+    const val COOK_REGISTER = "cookRegister"
     const val TECH_PARKS = "techparks"
-    const val KITCHENS = "kitchens"
+    const val CUSTOMER_HOME = "customerHome"
+    const val COOK_HOME = "cookHome"
     const val MENU = "menu/{cookId}/{kitchenName}"
     const val CART = "cart"
-    const val ORDERS = "orders"
+    const val PAYMENT = "payment"
 
     fun menu(cookId: Int, kitchenName: String) =
         "menu/$cookId/${android.net.Uri.encode(kitchenName)}"
+}
+
+/** Where a logged-in user belongs based on role + whether a tech park is set. */
+fun homeRouteFor(session: SessionManager): String = when {
+    session.isCook -> Routes.COOK_HOME
+    session.zoneId != 0 -> Routes.CUSTOMER_HOME
+    else -> Routes.TECH_PARKS
 }
 
 @Composable
@@ -36,25 +47,16 @@ fun AppNav() {
     val session = remember { SessionManager(context) }
     val navController = rememberNavController()
 
-    val start = if (session.isLoggedIn) Routes.KITCHENS else Routes.LOGIN
+    val start = if (session.isLoggedIn) homeRouteFor(session) else Routes.LOGIN
 
     NavHost(navController = navController, startDestination = start) {
 
-        composable(Routes.LOGIN) {
-            LoginScreen(session = session, navController = navController)
-        }
-
-        composable(Routes.REGISTER) {
-            RegisterScreen(session = session, navController = navController)
-        }
-
-        composable(Routes.TECH_PARKS) {
-            TechParkScreen(session = session, navController = navController)
-        }
-
-        composable(Routes.KITCHENS) {
-            KitchensScreen(session = session, navController = navController)
-        }
+        composable(Routes.LOGIN) { LoginScreen(session, navController) }
+        composable(Routes.REGISTER) { RegisterScreen(session, navController) }
+        composable(Routes.COOK_REGISTER) { CookRegisterScreen(session, navController) }
+        composable(Routes.TECH_PARKS) { TechParkScreen(session, navController) }
+        composable(Routes.CUSTOMER_HOME) { CustomerHome(session, navController) }
+        composable(Routes.COOK_HOME) { CookHome(session, navController) }
 
         composable(
             route = Routes.MENU,
@@ -65,19 +67,10 @@ fun AppNav() {
         ) { backStackEntry ->
             val cookId = backStackEntry.arguments?.getInt("cookId") ?: 0
             val kitchenName = backStackEntry.arguments?.getString("kitchenName") ?: "Kitchen"
-            MenuScreen(
-                cookId = cookId,
-                kitchenName = kitchenName,
-                navController = navController
-            )
+            MenuScreen(cookId = cookId, kitchenName = kitchenName, navController = navController)
         }
 
-        composable(Routes.CART) {
-            CartScreen(session = session, navController = navController)
-        }
-
-        composable(Routes.ORDERS) {
-            OrdersScreen(session = session, navController = navController)
-        }
+        composable(Routes.CART) { CartScreen(session, navController) }
+        composable(Routes.PAYMENT) { PaymentScreen(session, navController) }
     }
 }

@@ -74,7 +74,7 @@ fun TechParkScreen(session: SessionManager, navController: NavController) {
                             .padding(vertical = 6.dp)
                             .clickable {
                                 session.zoneId = zone.zoneId
-                                navController.navigate(Routes.KITCHENS) {
+                                navController.navigate(Routes.CUSTOMER_HOME) {
                                     popUpTo(Routes.TECH_PARKS) { inclusive = true }
                                 }
                             }

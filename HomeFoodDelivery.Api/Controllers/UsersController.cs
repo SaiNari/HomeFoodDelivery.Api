@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using HomeFoodDelivery.Api.Data;
 using HomeFoodDelivery.Api.Models;
+using HomeFoodDelivery.Api.DTOs;
 
 namespace HomeFoodDelivery.Api.Controllers
 {
@@ -44,6 +45,26 @@ namespace HomeFoodDelivery.Api.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+        }
+
+        // PUT: api/users/{id}  — update own profile
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileRequest request)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+
+            if (!string.IsNullOrWhiteSpace(request.FullName)) user.FullName = request.FullName;
+            if (request.AddressText != null) user.AddressText = request.AddressText;
+            if (request.Pincode != null) user.Pincode = request.Pincode;
+            if (request.ZoneId.HasValue) user.ZoneId = request.ZoneId;
+            if (request.KitchenName != null) user.KitchenName = request.KitchenName;
+            if (request.KitchenAddress != null) user.KitchenAddress = request.KitchenAddress;
+            if (request.Latitude.HasValue) user.Latitude = request.Latitude;
+            if (request.Longitude.HasValue) user.Longitude = request.Longitude;
+
+            await _context.SaveChangesAsync();
+            return Ok(user);
         }
 
         [HttpGet("kitchens/zone/{zoneId}")]

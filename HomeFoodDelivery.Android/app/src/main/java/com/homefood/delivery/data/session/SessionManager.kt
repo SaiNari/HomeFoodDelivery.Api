@@ -6,8 +6,8 @@ import android.content.Context
  * Tiny persistence for "who is logged in".
  *
  * NOTE: the current backend has no token-based auth — login just returns the
- * user record — so for this MVP we store the userId locally. When the backend
- * adds JWT, store the token here instead and attach it via an OkHttp interceptor.
+ * user record — so for this MVP we store the userId/role locally. When the
+ * backend adds JWT, store the token here and attach it via an OkHttp interceptor.
  */
 class SessionManager(context: Context) {
 
@@ -21,17 +21,33 @@ class SessionManager(context: Context) {
         get() = prefs.getString(KEY_NAME, null)
         set(value) = prefs.edit().putString(KEY_NAME, value).apply()
 
+    var role: String
+        get() = prefs.getString(KEY_ROLE, "Customer") ?: "Customer"
+        set(value) = prefs.edit().putString(KEY_ROLE, value).apply()
+
     var zoneId: Int
         get() = prefs.getInt(KEY_ZONE_ID, 0)
         set(value) = prefs.edit().putInt(KEY_ZONE_ID, value).apply()
 
+    var addressText: String?
+        get() = prefs.getString(KEY_ADDRESS, null)
+        set(value) = prefs.edit().putString(KEY_ADDRESS, value).apply()
+
+    var kitchenName: String?
+        get() = prefs.getString(KEY_KITCHEN, null)
+        set(value) = prefs.edit().putString(KEY_KITCHEN, value).apply()
+
     val isLoggedIn: Boolean get() = userId != 0
+    val isCook: Boolean get() = role.equals("Cook", ignoreCase = true)
 
     fun clear() = prefs.edit().clear().apply()
 
     private companion object {
         const val KEY_USER_ID = "user_id"
         const val KEY_NAME = "full_name"
+        const val KEY_ROLE = "role"
         const val KEY_ZONE_ID = "zone_id"
+        const val KEY_ADDRESS = "address"
+        const val KEY_KITCHEN = "kitchen"
     }
 }
