@@ -219,18 +219,46 @@
             const orders = await res.json();
             const tbody = document.getElementById('orderTableBody');
 
-            if (orders.length === 0) return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No active orders right now.</td></tr>';
+            if (orders.length === 0) {
+                return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No active orders right now.</td></tr>';
+            }
 
-            tbody.innerHTML = orders.map(o => `
-                    <tr>
-                        <td class="fw-bold text-dark">${o.dailyMenu?.dishName || 'Dish'}</td>
-                        <td><span class="badge bg-light text-dark border px-2">${o.quantity}</span></td>
-                        <td><span class="badge ${o.orderStatus === 'Ready' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill">${o.orderStatus}</span></td>
-                        <td>
-                            ${o.orderStatus === 'Pending' ? `<button class="btn btn-sm btn-success fw-bold rounded-pill px-3" onclick="updateGroupStatus('${o.orderId}')">Mark Ready</button>` : `<span class="text-success small fw-bold"><i class="fa-solid fa-check"></i></span>`}
-                        </td>
-                    </tr>
-                `).join('');
+            // Group orders by Tech Park name
+            const groupedOrders = orders.reduce((acc, order) => {
+                // Assuming the order object contains Customer and Zone information
+                const hubName = (order.customer && order.customer.zone) ? order.customer.zone.techParkName : "General Delivery";
+                if (!acc[hubName]) acc[hubName] = [];
+                acc[hubName].push(order);
+                return acc;
+            }, {});
+
+            tbody.innerHTML = '';
+
+            // Render grouped orders
+            for (const hubName in groupedOrders) {
+                // Add a section header for the Hub
+                tbody.innerHTML += `
+            <tr class="table-primary">
+                <td colspan="4" class="fw-bold text-dark p-2">
+                    <i class="fa-solid fa-location-dot text-danger me-2"></i> ${hubName}
+                </td>
+            </tr>`;
+
+                // Render the orders within this hub
+                groupedOrders[hubName].forEach(o => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td class="ps-4 fw-bold text-dark">${o.dailyMenu?.dishName || 'Dish'}</td>
+                    <td><span class="badge bg-light text-dark border px-2">${o.quantity}</span></td>
+                    <td><span class="badge ${o.orderStatus === 'Ready' ? 'bg-success' : 'bg-warning text-dark'} rounded-pill">${o.orderStatus}</span></td>
+                    <td>
+                        ${o.orderStatus === 'Pending' ?
+                            `<button class="btn btn-sm btn-success fw-bold rounded-pill px-3" onclick="updateGroupStatus('${o.orderId}')">Mark Ready</button>` :
+                            `<span class="text-success small fw-bold"><i class="fa-solid fa-check"></i></span>`}
+                    </td>
+                </tr>`;
+                });
+            }
         }
 
         async function updateGroupStatus(orderId) {
