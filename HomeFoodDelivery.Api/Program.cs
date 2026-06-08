@@ -26,7 +26,9 @@ builder.Services.AddControllers()
     });
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
-builder.Services.AddSignalR(); 
+builder.Services.AddSignalR();
+
+builder.Services.AddHostedService<MenuCutoffWorker>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

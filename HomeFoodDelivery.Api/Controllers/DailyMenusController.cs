@@ -20,6 +20,13 @@ namespace HomeFoodDelivery.Api.Controllers
             _hubContext = hubContext;
         }
 
+        // Helper to get IST Time safely
+        private DateTime GetCurrentIstTime()
+        {
+            try { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time")); }
+            catch { return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata")); }
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DailyMenu>>> GetDailyMenus()
         {
@@ -37,8 +44,9 @@ namespace HomeFoodDelivery.Api.Controllers
             return Ok(menus);
         }
 
+        // RESTORED: The Master POST Method (Validation + Social Feed)
         [HttpPost]
-        public async Task<ActionResult<DailyMenu>> PostDailyMenu(DailyMenu menu)
+        public async Task<IActionResult> PostDailyMenu([FromBody] DailyMenu menu)
         {
             try
             {
@@ -46,43 +54,76 @@ namespace HomeFoodDelivery.Api.Controllers
                 if (menu.MenuDate == default) menu.MenuDate = DateTime.UtcNow;
 
                 if (menu.CookId == 0 || menu.ShiftId == 0)
-                {
-                    return BadRequest("CookId and ShiftId are required.");
-                }
+                    return BadRequest(new { Message = "CookId and ShiftId are required." });
 
                 _context.DailyMenus.Add(menu);
                 await _context.SaveChangesAsync();
 
-                return Ok(menu);
+                var cook = await _context.Users.FindAsync(menu.CookId);
+                string kitchenName = cook?.KitchenName ?? "Your favorite chef";
+
+                var followerIds = await _context.CookFollowers
+                    .Where(cf => cf.CookId == menu.CookId)
+                    .Select(cf => cf.CustomerId.ToString())
+                    .ToListAsync();
+
+                if (followerIds.Any())
+                {
+                    await _hubContext.Clients.Users(followerIds).SendAsync("NewMenuAlert", new
+                    {
+                        Message = $"{kitchenName} just posted a new menu: {menu.DishName}!",
+                        MenuId = menu.MenuId,
+                        CookName = kitchenName
+                    });
+                }
+
+                return Ok(new { Message = "Meal published successfully!", Menu = menu });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+                return BadRequest(new { Message = ex.InnerException?.Message ?? ex.Message });
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PostMenu([FromBody] DailyMenu menu)
+        // NEW: DELETE A MENU (Only before cutoff)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMenu(int id)
         {
-            _context.DailyMenus.Add(menu);
+            var menu = await _context.DailyMenus.Include(m => m.MealShift).FirstOrDefaultAsync(m => m.MenuId == id);
+            if (menu == null) return NotFound(new { Message = "Menu not found." });
+
+            var istNow = GetCurrentIstTime();
+
+            if (menu.MenuDate.Date == istNow.Date && menu.MealShift != null && istNow.TimeOfDay >= menu.MealShift.CutoffTime)
+                return BadRequest(new { Message = "Cannot delete: The kitchen cutoff time for this shift has already passed." });
+
+            _context.DailyMenus.Remove(menu);
             await _context.SaveChangesAsync();
+            return Ok(new { Message = "Schedule deleted successfully." });
+        }
 
-            // 1. Find all customer IDs following this specific cook
-            var followerIds = await _context.CookFollowers
-                .Where(cf => cf.CookId == menu.CookId)
-                .Select(cf => cf.CustomerId.ToString())
-                .ToListAsync();
+        // NEW: EDIT A MENU (Only before cutoff)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMenu(int id, [FromBody] DailyMenu updatedMenu)
+        {
+            var menu = await _context.DailyMenus.Include(m => m.MealShift).FirstOrDefaultAsync(m => m.MenuId == id);
+            if (menu == null) return NotFound(new { Message = "Menu not found." });
 
-            // 2. Send the real-time notification to only these followers
-            // We send a specific event "NewMenuAlert"
-            await _hubContext.Clients.Users(followerIds).SendAsync("NewMenuAlert", new
-            {
-                Message = $"Your favorite chef just posted a new menu: {menu.DishName}!",
-                MenuId = menu.MenuId,
-                CookName = "Your Favorite Kitchen" // You could also fetch the cook's kitchen name here
-            });
+            var istNow = GetCurrentIstTime();
 
-            return Ok(menu);
+            if (menu.MenuDate.Date == istNow.Date && menu.MealShift != null && istNow.TimeOfDay >= menu.MealShift.CutoffTime)
+                return BadRequest(new { Message = "Cannot edit: The kitchen cutoff time for this shift has already passed." });
+
+            menu.DishName = updatedMenu.DishName;
+            menu.Description = updatedMenu.Description;
+            menu.PricePerPortion = updatedMenu.PricePerPortion;
+            menu.AvailablePortions = updatedMenu.AvailablePortions;
+
+            if (!string.IsNullOrEmpty(updatedMenu.ImageUrl))
+                menu.ImageUrl = updatedMenu.ImageUrl;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { Message = "Schedule updated successfully.", Menu = menu });
         }
     }
 }
