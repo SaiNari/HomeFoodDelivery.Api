@@ -1,0 +1,334 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chef Profile - OotaBox</title>
+    <!-- Bootstrap & FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>if (!localStorage.getItem('userId')) window.location.href = '/index.html';</script>
+    <style>
+        .profile-header-bg {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            height: 120px;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            background-color: white;
+            border: 4px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -45px;
+            margin-left: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-light pb-5">
+
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-light bg-white shadow-sm sticky-top mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-dark text-decoration-none px-0 fw-bold" onclick="window.location.href='menu.html'">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Menu
+            </button>
+            <span class="navbar-brand fw-bold mx-auto">Chef Profile</span>
+            <div style="width: 80px;"></div> <!-- Spacer -->
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+
+        <!-- Profile Info Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4" id="profileCard" style="display: none;">
+            <div class="profile-header-bg"></div>
+            <div class="profile-avatar">
+                <i class="fa-solid fa-kitchen-set fs-1 text-danger"></i>
+            </div>
+            <div class="card-body p-4 pt-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark" id="kitchenName">Loading...</h3>
+                        <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot text-danger me-1"></i> <span id="kitchenAddress"></span></p>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-star"></i> <span id="rating"></span></span>
+                            <span class="badge bg-info bg-opacity-10 text-info px-2 py-1 border border-info"><i class="fa-solid fa-users"></i> <span id="followerCount"></span> Followers</span>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <button id="followBtn" class="btn btn-outline-primary fw-bold rounded-pill px-4 shadow-sm" onclick="toggleFollow()">
+                            <i class="fa-solid fa-plus me-1"></i> Follow
+                        </button>
+                        <button id="favoriteBtn" class="btn btn-outline-danger fw-bold rounded-pill px-4 shadow-sm" onclick="toggleFavorite()">
+                            <i class="fa-regular fa-heart me-1"></i> Favorite
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="social-links mt-2 pt-3 border-top" id="socialLinks"></div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="alert alert-danger shadow-sm rounded-4 d-none">
+            <h5 class="fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> No Kitchen Selected</h5>
+            <p class="mb-0">Please go back to the Kitchen List and select a chef to view their profile.</p>
+        </div>
+
+        <!-- Signature Menu -->
+        <h5 class="fw-bold mb-3 mt-4 text-dark"><i class="fa-solid fa-fire-burner text-danger me-2"></i> Signature Menu</h5>
+        <div id="menuContainer" class="row g-3 mb-5">
+            <p class="text-muted small ms-2">Loading menu...</p>
+        </div>
+
+        <!-- Reviews Section -->
+        <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-comments text-primary me-2"></i> Customer Reviews</h5>
+        <div id="reviewsContainer" class="d-flex flex-column gap-3 mb-5">
+            <p class="text-muted small ms-2">Loading reviews...</p>
+        </div>
+        <!-- Review Input Section -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Leave your feedback</h6>
+
+                <!-- Interactive Star Block -->
+                <div class="d-flex align-items-center gap-2 mb-3" id="starRatingContainer">
+                    <div id="stars" class="fs-3 text-warning">
+                        <i class="fa-regular fa-star" onclick="setRating(1)" onmouseover="hoverStars(1)"></i>
+                        <i class="fa-regular fa-star" onclick="setRating(2)" onmouseover="hoverStars(2)"></i>
+                        <i class="fa-regular fa-star" onclick="setRating(3)" onmouseover="hoverStars(3)"></i>
+                        <i class="fa-regular fa-star" onclick="setRating(4)" onmouseover="hoverStars(4)"></i>
+                        <i class="fa-regular fa-star" onclick="setRating(5)" onmouseover="hoverStars(5)"></i>
+                    </div>
+                    <span id="ratingLabel" class="fw-bold ms-2 text-muted"></span>
+                </div>
+
+                <textarea id="commentInput" class="form-control mb-3" placeholder="How was the food?"></textarea>
+                <button class="btn btn-danger w-100 rounded-pill fw-bold" onclick="submitReview()">Post Review</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Pull IDs securely from localStorage!
+        const cookId = localStorage.getItem('activeCookId');
+        const currentCustomerId = localStorage.getItem('userId');
+
+        async function loadProfile() {
+            if (!cookId || !currentCustomerId) {
+                document.getElementById('errorState').classList.remove('d-none');
+                return;
+            }
+
+            try {
+                // Fetch the aggregated profile data from our API
+                const response = await fetch(`/api/users/cooks/${cookId}/profile?currentCustomerId=${currentCustomerId}`);
+
+                if (!response.ok) throw new Error("Backend failed to return profile.");
+
+                const data = await response.json();
+
+                // Show the profile card
+                document.getElementById('profileCard').style.display = 'block';
+
+                // Populate Header Data
+                document.getElementById('kitchenName').innerText = data.kitchenName || 'Unnamed Kitchen';
+                document.getElementById('kitchenAddress').innerText = data.kitchenAddress || 'Tech Park Delivery Hub';
+                document.getElementById('rating').innerText = data.rating > 0 ? data.rating.toFixed(1) : 'New';
+                document.getElementById('followerCount').innerText = data.followers || 0;
+
+                // Populate Social Links
+                let socialsHtml = '';
+                if (data.socials && data.socials.instagram) socialsHtml += `<a href="${data.socials.instagram}" target="_blank" class="btn btn-sm btn-light border fw-bold text-dark me-2 rounded-pill"><i class="fa-brands fa-instagram text-danger"></i> Instagram</a>`;
+                if (data.socials && data.socials.youTube) socialsHtml += `<a href="${data.socials.youTube}" target="_blank" class="btn btn-sm btn-light border fw-bold text-dark rounded-pill"><i class="fa-brands fa-youtube text-danger"></i> Kitchen Tour</a>`;
+                document.getElementById('socialLinks').innerHTML = socialsHtml || '<span class="text-muted small">No social accounts linked yet.</span>';
+
+                // Initialize Follow Button State
+                const followBtn = document.getElementById('followBtn');
+                if (data.isFollowing) {
+                    followBtn.classList.replace('btn-outline-primary', 'btn-primary');
+                    followBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Following';
+                }
+
+                const favoriteBtn = document.getElementById('favoriteBtn');
+                if (data.isFavorite) {
+                    favoriteBtn.classList.replace('btn-outline-danger', 'btn-danger');
+                    favoriteBtn.innerHTML = '<i class="fa-solid fa-heart me-1"></i> Favorited';
+                }
+
+                // Populate Menu Grid
+                if (data.menu && data.menu.length > 0) {
+                    document.getElementById('menuContainer').innerHTML = data.menu.map(m => `
+                            <div class="col-12 col-md-6">
+                                <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+                                    <div class="card-body p-3 d-flex flex-column">
+                                        <h6 class="fw-bold text-dark mb-1">${m.dishName}</h6>
+                                        <p class="card-text small text-muted mb-2 line-clamp-2">${m.description || 'Authentic home recipe.'}</p>
+                                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                                            <h6 class="text-danger fw-bold mb-0">₹${m.pricePerPortion}</h6>
+                                            <button class="btn btn-sm btn-dark fw-bold rounded-pill px-3" onclick="window.location.href='menu.html'">Order</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                } else {
+                    document.getElementById('menuContainer').innerHTML = '<p class="text-muted small ms-2 border p-3 rounded bg-white w-100 text-center">No dishes scheduled for today. Follow them to get alerted!</p>';
+                }
+
+                // Populate Reviews
+                if (data.reviews && data.reviews.length > 0) {
+                    document.getElementById('reviewsContainer').innerHTML = data.reviews.map(r => `
+                            <div class="p-3 border rounded-4 bg-white shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong><i class="fa-solid fa-circle-user text-muted me-1"></i> ${r.customerName}</strong>
+                                    <span class="text-muted" style="font-size: 0.75rem;">${r.date}</span>
+                                </div>
+                                <div class="mb-2 text-warning" style="font-size: 0.8rem;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                                <p class="mb-0 text-secondary small">"${r.comment}"</p>
+                            </div>
+                        `).join('');
+                } else {
+                    document.getElementById('reviewsContainer').innerHTML = '<p class="text-muted small ms-2 text-center w-100 py-4"><i class="fa-regular fa-comment-dots fs-1 mb-2"></i><br>No reviews yet. Be the first to try their food!</p>';
+                }
+
+            } catch (error) {
+                console.error("Profile load error:", error);
+            }
+        }
+
+        async function toggleFollow() {
+            try {
+                const response = await fetch(`/api/users/cooks/${cookId}/toggle-follow`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parseInt(currentCustomerId))
+                });
+
+                if (!response.ok) throw new Error("Failed to toggle follow state.");
+                const result = await response.json();
+
+                // Update UI dynamically
+                const followBtn = document.getElementById('followBtn');
+                let currentCount = parseInt(document.getElementById('followerCount').innerText);
+
+                if (result.isFollowing) {
+                    followBtn.classList.replace('btn-outline-danger', 'btn-danger');
+                    followBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Following';
+                    document.getElementById('followerCount').innerText = currentCount + 1;
+                } else {
+                    followBtn.classList.replace('btn-danger', 'btn-outline-danger');
+                    followBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Follow';
+                    document.getElementById('followerCount').innerText = currentCount - 1;
+                }
+            } catch (error) {
+                alert("Network error. Could not update follow status.");
+                console.error(error);
+            }
+        }
+
+        async function toggleFavorite() {
+            try {
+                const res = await fetch(`/api/users/cooks/${cookId}/toggle-favorite`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(parseInt(currentCustomerId))
+                });
+
+                if (!res.ok) throw new Error("API Failed - Database table might be missing!");
+
+                const result = await res.json();
+                const btn = document.getElementById('favoriteBtn');
+
+                if (result.isFavorite) {
+                    btn.classList.replace('btn-outline-danger', 'btn-danger');
+                    btn.innerHTML = '<i class="fa-solid fa-heart me-1"></i> Favorited';
+
+                    // NEW: Success Message!
+                    alert("Success! You have added this kitchen to your Favorites. You are now a Loyal Customer!");
+                } else {
+                    btn.classList.replace('btn-danger', 'btn-outline-danger');
+                    btn.innerHTML = '<i class="fa-regular fa-heart me-1"></i> Favorite';
+                    alert("Kitchen removed from your Favorites.");
+                }
+            } catch (error) {
+                console.error("Favorite Error:", error);
+                alert("Oops! Could not save favorite. Please ensure the backend database is updated.");
+            }
+        }
+
+        async function submitReview() {
+            const comment = document.getElementById('commentInput').value;
+            // Ensure currentSelectedRating is set via the star-click function
+            const rating = currentSelectedRating;
+
+            if (rating === 0) return alert("Please select a star rating!");
+            if (!comment) return alert("Please write a comment!");
+
+            const payload = {
+                cookId: parseInt(cookId),
+                customerId: parseInt(currentCustomerId),
+                rating: rating,
+                comment: comment,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                const res = await fetch('/api/Reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Review posted successfully!");
+                    document.getElementById('commentInput').value = '';
+                    // Reset stars
+                    setRating(0);
+                    // Refresh the profile to fetch updated review list
+                    await loadProfile();
+                } else {
+                    alert("Failed to post review. Please check the API logs.");
+                }
+            } catch (error) {
+                console.error("Error posting review:", error);
+            }
+        }
+
+        let currentSelectedRating = 0;
+
+        function setRating(rating) {
+            currentSelectedRating = rating;
+            updateStars(rating);
+            const labels = ["", "Very Bad", "Bad", "Average", "Good", "Excellent"];
+            document.getElementById('ratingLabel').innerText = labels[rating];
+        }
+
+        function updateStars(rating) {
+            const stars = document.getElementById('stars').querySelectorAll('i');
+            stars.forEach((star, index) => {
+                star.className = index < rating ? "fa-solid fa-star" : "fa-regular fa-star";
+            });
+        }
+
+        function hoverStars(rating) {
+            // Optional: add temporary highlight effect while hovering
+            const stars = document.getElementById('stars').querySelectorAll('i');
+            stars.forEach((star, index) => {
+                star.style.opacity = index < rating ? "1" : "0.5";
+            });
+        }
+
+        // Boot up the page
+        loadProfile();
+    </script>
+</body>
+</html>

@@ -18,5 +18,9 @@ public class DeliveryZone
     public double Latitude { get; set; }
     public double Longitude { get; set; }
 
+    public string? HubName { get; set; }
+    public string? HubContactNumber { get; set; }
+    public string? DropOffInstructions { get; set; }
+
     public bool IsActive { get; set; } = true;
 }

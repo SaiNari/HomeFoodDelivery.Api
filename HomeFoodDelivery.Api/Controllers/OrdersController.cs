@@ -45,6 +45,20 @@ namespace HomeFoodDelivery.Api.Controllers
             }
         }
 
+        //[HttpGet("cook/{cookId}")]
+        //public async Task<IActionResult> GetOrdersByCook(int cookId)
+        //{
+        //    var orders = await _context.Orders
+        //        .Include(o => o.DailyMenu)
+        //        .Include(o => o.Customer)
+        //        .ThenInclude(c => c.DeliveryZone)
+        //        .Where(o => o.DailyMenu.CookId == cookId)
+        //        .OrderByDescending(o => o.OrderTime)
+        //        .ToListAsync();
+
+        //    return Ok(orders);
+        //}
+
         // GET: api/Orders/cook/{cookId}
         [HttpGet("cook/{cookId}")]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrdersForCook(int cookId)

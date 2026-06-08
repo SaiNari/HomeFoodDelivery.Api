@@ -3,6 +3,7 @@ using System;
 using HomeFoodDelivery.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,60 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeFoodDelivery.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260606064742_ApplyLatestUpdates")]
+    partial class ApplyLatestUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.CookFavorite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CookId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CookId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("CookFavorites");
-                });
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.CookFollower", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("CookId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CookId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("CookFollowers");
-                });
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.DailyMenu", b =>
                 {
@@ -220,15 +175,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.Property<int>("ZoneId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("DropOffInstructions")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HubContactNumber")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HubName")
-                        .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
@@ -549,44 +495,6 @@ namespace HomeFoodDelivery.Api.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("WalletTransactions");
-                });
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.CookFavorite", b =>
-                {
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Cook")
-                        .WithMany()
-                        .HasForeignKey("CookId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Cook");
-
-                    b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("HomeFoodDelivery.Api.Models.CookFollower", b =>
-                {
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Cook")
-                        .WithMany()
-                        .HasForeignKey("CookId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("HomeFoodDelivery.Api.Models.User", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Cook");
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("HomeFoodDelivery.Api.Models.DailyMenu", b =>

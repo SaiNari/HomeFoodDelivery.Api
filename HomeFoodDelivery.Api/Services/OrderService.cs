@@ -10,13 +10,15 @@ namespace HomeFoodDelivery.Api.Services;
 public class OrderService : IOrderService
 {
     private readonly DataContext _context;
-    private readonly IHubContext<KitchenHub> _hubContext; 
+    private readonly IHubContext<KitchenHub> _hubContext;
+    private readonly IWalletService _walletService;
 
-    
-    public OrderService(DataContext context, IHubContext<KitchenHub> hubContext)
+
+    public OrderService(DataContext context, IHubContext<KitchenHub> hubContext, IWalletService walletService)
     {
         _context = context;
         _hubContext = hubContext;
+        _walletService = walletService;
     }
 
     public async Task<Order> PlaceOrderAsync(Order order)
@@ -54,6 +56,12 @@ public class OrderService : IOrderService
 
         try
         {
+            if (request.PaymentMethod == "Wallet")
+            {
+                var success = await _walletService.DebitBalanceAsync(request.CustomerId, request.TotalAmount);
+                if (!success) throw new Exception("Insufficient wallet balance.");
+            }
+
             foreach (var item in request.Items)
             {
                 var menu = await _context.DailyMenus.FirstOrDefaultAsync(m => m.MenuId == item.MenuId);
